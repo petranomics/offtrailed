@@ -77,6 +77,25 @@ function getTheme(themeName) {
   return THEMES[themeName] || THEMES.forest;
 }
 
+// Trail Fork Mark — brand logo (dashed boring path, curved novel path, gold fork dot)
+function TrailForkMark({ size = 24, theme }) {
+  var s = size;
+  return (
+    <svg viewBox="0 0 40 60" width={s} height={s * 1.5} style={{ display: "inline-block", verticalAlign: "middle" }}>
+      {/* Boring path — dashed, fading upward */}
+      <line x1="20" y1="58" x2="20" y2="5" stroke={theme.mut} strokeWidth="2" strokeDasharray="3 4" opacity={0.4} />
+      {/* Novel path — curved right and up */}
+      <path d="M20,38 C22,32 28,26 34,16" fill="none" stroke={theme.fg} strokeWidth="2.5" strokeLinecap="round" />
+      {/* Discovery dots along novel path */}
+      <circle cx="25" cy="30" r="1.5" fill={theme.fg} opacity={0.5} />
+      <circle cx="29" cy="24" r="2" fill={theme.fg} opacity={0.7} />
+      <circle cx="34" cy="16" r="3" fill={theme.fg} />
+      {/* Gold fork-point dot */}
+      <circle cx="20" cy="38" r="3" fill="#E8A835" />
+    </svg>
+  );
+}
+
 // SVG Background Components — one per theme
 function ForestBackground({ theme, opacity = 0.3 }) {
   return (
@@ -381,7 +400,7 @@ export default function App() {
       var boostHints = activeBoosts.length > 0 ? "\n\nAlgorithm Control (apply these biases):\n" + activeBoosts.map(function (b) { return (b.type === "highlight" ? "[+" + b.pct + "%] HIGHLIGHT" : "[-" + b.pct + "%] LOWLIGHT") + ": " + b.name; }).join("\n") : "";
       var durationHours = Math.abs((endTime.split(":")[0] - startTime.split(":")[0]) + (endTime.split(":")[1] - startTime.split(":")[1]) / 60);
       var durationLabel = durationHours <= 3 ? "2-3 hours" : durationHours <= 6 ? "half day" : durationHours <= 10 ? "full day" : "overnight";
-      var query = (mission ? "Focus on: " + mission + "\n" : "") + "Itinerary for " + loc + " on " + date + " from " + startTime + " to " + endTime + " (" + durationLabel + "), vibe: " + vibe + ", budget: " + budget + ". Generate 6-10 real, verified stops.\nJSON: {\"stops\":[{\"time\":\"10:00 AM\",\"name\":\"N\",\"category\":\"food\",\"description\":\"Desc\",\"insider_tip\":\"Tip\",\"est_cost\":\"$10\"}],\"trail_note\":\"Note\",\"total_est_cost\":\"$X\"}" + boostHints;
+      var query = (mission ? "Focus on: " + mission + "\n" : "") + "Trail for " + loc + " on " + date + " from " + startTime + " to " + endTime + " (" + durationLabel + "), vibe: " + vibe + ", budget: " + budget + ". Generate 6-10 real, verified stops.\nJSON: {\"stops\":[{\"time\":\"10:00 AM\",\"name\":\"N\",\"category\":\"food\",\"description\":\"Desc\",\"insider_tip\":\"Tip\",\"est_cost\":\"$10\"}],\"trail_note\":\"Note\",\"total_est_cost\":\"$X\"}" + boostHints;
       var res = await fetch("/api/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -391,13 +410,11 @@ export default function App() {
       try {
         data = await res.json();
       } catch (err) {
-        var text = await res.text();
-        var stripped = text.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-        setNote("Agent returned non-JSON response: " + (stripped || text).slice(0,1000));
+        setNote("Lost the signal. Try again.");
         setLoading(false);
         return;
       }
-      if (!data) { setNote("No response from agent"); setLoading(false); return; }
+      if (!data) { setNote("Lost the signal. Try again."); setLoading(false); return; }
       var answer = data.answer || data.response || "";
       var parsed = extractJSON(answer);
       if (parsed && parsed.stops) {
@@ -408,7 +425,7 @@ export default function App() {
         setNote(stripTags(answer || JSON.stringify(data)));
       }
     } catch (e) {
-      setNote("Error: " + e.message);
+      setNote("Lost the signal: " + e.message);
     }
     setLoading(false);
   }
@@ -428,7 +445,7 @@ export default function App() {
       {/* ===== HEADER ===== */}
       <div style={{ position: "sticky", top: 0, zIndex: 40, padding: "8px 12px", background: theme.srf, borderBottom: "1px solid " + theme.cbd, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }} onClick={function () { setPg("home"); }}>
-          <span style={{ fontSize: 16 }}>↗</span>
+          <TrailForkMark size={14} theme={theme} />
           <span style={{ fontSize: 11, letterSpacing: 5, color: theme.hi, fontWeight: 700 }}>OFFTRAILED</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -456,7 +473,7 @@ export default function App() {
             <div style={{ marginBottom: 8 }}><label style={lbl}>EMAIL</label><input value={email} onChange={function (e) { setEmail(e.target.value); }} style={inp} /></div>
             <div style={{ marginBottom: 8 }}><label style={lbl}>PASSWORD</label><input type="password" value={pw} onChange={function (e) { setPw(e.target.value); }} style={inp} /></div>
             {authErr && <p style={{ fontSize: 10, color: theme.ac2, marginBottom: 6 }}>{authErr}</p>}
-            <button onClick={login} style={btn(true, { width: "100%", marginBottom: 10 })}>↗ SIGN IN</button>
+            <button onClick={login} style={btn(true, { width: "100%", marginBottom: 10 })}>SIGN IN</button>
             <div style={{ borderTop: "1px solid " + theme.ina, paddingTop: 8 }}>
               <p style={{ fontSize: 8, color: theme.mut, textAlign: "center", letterSpacing: 2, marginBottom: 6 }}>DEMO ACCOUNTS (click to fill)</p>
               {[["demo@offtrailed.com", "trail123", "🧭 Explorer"], ["biz@coffeehaus.com", "biz123", "☕ Business"], ["admin@offtrailed.com", "admin123", "⚡ Admin"]].map(function (a) {
@@ -510,10 +527,10 @@ export default function App() {
 
           {/* Restored Landing / Intro */}
           <div style={{ textAlign: "center", padding: "30px 0 10px" }}>
-            <div style={{ fontSize: 48, marginBottom: 8 }}>↗</div>
+            <TrailForkMark size={40} theme={theme} />
             <h1 style={{ fontSize: 32, fontWeight: 900, color: theme.hi, letterSpacing: 8, margin: "0 0 4px" }}>OFFTRAILED</h1>
             <p style={{ color: theme.fg, letterSpacing: 3, fontSize: 13, margin: 0 }}>Break the loop. Find what's new.</p>
-            <p style={{ color: theme.dim, fontSize: 12, marginTop: 8, maxWidth: 560, marginLeft: "auto", marginRight: "auto" }}>AI-powered discovery trails that help you find novel, underrated local experiences. No tourist traps.</p>
+            <p style={{ color: theme.dim, fontSize: 12, marginTop: 8, maxWidth: 560, marginLeft: "auto", marginRight: "auto" }}>AI-powered discovery trails for the curious.</p>
             {user && <p style={{ fontSize: 10, color: theme.acc, marginTop: 6 }}>Welcome back, {user.name}</p>}
           </div>
 
@@ -522,9 +539,9 @@ export default function App() {
               <div style={{ ...card, flex: "1 1 220px" }}>
                 <div style={{ fontSize: 12, color: theme.hi, fontWeight: 700, marginBottom: 8 }}>How It Works</div>
                 <div style={{ color: theme.dim, fontSize: 12, lineHeight: 1.7 }}>
-                  <p style={{ margin: "0 0 6px" }}><strong style={{ color: theme.fg }}>Pick Your Parameters:</strong> City, date, vibe (hidden gems, food, art, nightlife), budget, and duration.</p>
-                  <p style={{ margin: "0 0 6px" }}><strong style={{ color: theme.fg }}>AI Scouts Live:</strong> Claude runs web searches in real-time to find current, verified stops — no stale lists.</p>
-                  <p style={{ margin: "0 0 6px" }}><strong style={{ color: theme.fg }}>Get Your Trail:</strong> 6-10 unique stops with insider tips, cost estimates, and business perks waiting at check-in.</p>
+                  <p style={{ margin: "0 0 6px" }}><strong style={{ color: theme.fg }}>Set Your Trailhead:</strong> City, date, vibe, budget, and duration.</p>
+                  <p style={{ margin: "0 0 6px" }}><strong style={{ color: theme.fg }}>AI Scouts the Area:</strong> Live web search finds real, current waypoints — no stale lists.</p>
+                  <p style={{ margin: "0 0 6px" }}><strong style={{ color: theme.fg }}>Get Your Trail:</strong> 6-10 unique waypoints with insider tips, cost estimates, and perks at check-in.</p>
                   <p style={{ margin: 0 }}><strong style={{ color: theme.fg }}>Break the Loop:</strong> Every trail is fresh. No tourist traps. Just discoveries.</p>
                 </div>
               </div>
@@ -542,7 +559,7 @@ export default function App() {
 
           {/* Builder */}
           <div style={{ ...card, padding: 24 }}>
-            <div style={{ fontSize: 12, letterSpacing: 4, color: theme.hi, fontWeight: 700, marginBottom: 16 }}>↗ BUILD YOUR TRAIL</div>
+            <div style={{ fontSize: 12, letterSpacing: 4, color: theme.hi, fontWeight: 700, marginBottom: 16 }}>BUILD YOUR TRAIL</div>
             <div style={{ marginBottom: 12 }}><label style={lbl}>TRAILHEAD</label><input value={loc} onChange={function (e) { setLoc(e.target.value); }} placeholder="Austin, Texas" style={inp} /></div>
             <div style={{ marginBottom: 12 }}><label style={{ ...lbl, color: theme.acc }}>MISSION (optional)</label><textarea value={mission} onChange={function (e) { setMission(e.target.value); }} rows={2} placeholder='"Date night" or "SXSW music day"' style={{ ...inp, resize: "none" }}></textarea></div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, marginBottom: 12 }}>
@@ -567,7 +584,7 @@ export default function App() {
               </div>
             </div>
             <button onClick={generate} disabled={loading} style={btn(true, { width: "100%", letterSpacing: 5, fontSize: 12, padding: 14, opacity: loading ? 0.5 : 1 })}>
-              {loading ? "↗ SCOUTING..." : "↗ GET OFFTRAILED ↗"}
+              {loading ? "SCOUTING..." : "GET OFFTRAILED"}
             </button>
           </div>
         </div>
@@ -578,7 +595,7 @@ export default function App() {
         <div style={{ maxWidth: 600, margin: "0 auto", padding: 16 }}>
           {loading && (
             <div style={{ textAlign: "center", padding: "60px 0" }}>
-              <div style={{ fontSize: 32 }}>↗</div>
+              <TrailForkMark size={28} theme={theme} />
               <p style={{ fontSize: 11, color: theme.mut, letterSpacing: 3, marginTop: 12 }}>{ldMsg}</p>
             </div>
           )}
@@ -592,7 +609,7 @@ export default function App() {
                 <div style={{ display: "flex", gap: 4 }}>
                   <button onClick={function () { var url = "https://www.google.com/maps/dir/" + stops.map(function (s) { return encodeURIComponent(s.name + ", " + loc); }).join("/"); window.open(url, "_blank"); }} style={btn(false, { padding: "4px 10px", fontSize: 9, color: theme.ac3 })}>MAP ↗</button>
                   {user && <button onClick={function () { setSaved(function (p) { return p.concat([{ id: "t" + Date.now(), title: loc + " Trail", date: date, stops: stops }]); }); }} style={btn(false, { padding: "4px 10px", fontSize: 9, color: theme.acc })}>★ SAVE</button>}
-                  <button onClick={function () { setPg("home"); }} style={btn(false, { padding: "4px 10px", fontSize: 9 })}>← EDIT</button>
+                  <button onClick={function () { setPg("home"); }} style={btn(false, { padding: "4px 10px", fontSize: 9 })}>← REROUTE</button>
                 </div>
               </div>
 
@@ -631,7 +648,7 @@ export default function App() {
 
               {/* Reroute */}
               <div style={{ ...card, marginTop: 12 }}>
-                <label style={lbl}>↗ REROUTE</label>
+                <label style={lbl}>REROUTE</label>
                 <div style={{ display: "flex", gap: 8 }}>
                   <input value={tweak} onChange={function (e) { setTweak(e.target.value); }} placeholder="'more food' or 'swap stop 3'" style={{ ...inp, flex: 1, fontSize: 11 }} />
                   <button style={btn(true, { padding: "8px 14px", background: ACC })}>GO</button>
@@ -649,9 +666,10 @@ export default function App() {
           )}
           {!loading && stops.length === 0 && (
             <div style={{ textAlign: "center", padding: "60px 0" }}>
-              <div style={{ fontSize: 32 }}>↗</div>
-              {note && <p style={{ fontSize: 11, color: theme.ac2, marginTop: 12 }}>{note}</p>}
-              <button onClick={function () { setPg("home"); }} style={btn(false, { marginTop: 12, fontSize: 10 })}>← Home</button>
+              <TrailForkMark size={28} theme={theme} />
+              <p style={{ fontSize: 12, color: theme.mut, letterSpacing: 3, marginTop: 12 }}>No trail yet</p>
+              {note && <p style={{ fontSize: 11, color: theme.ac2, marginTop: 8 }}>{note}</p>}
+              <button onClick={function () { setPg("home"); }} style={btn(false, { marginTop: 12, fontSize: 10 })}>← Back to Trailhead</button>
             </div>
           )}
         </div>
@@ -765,7 +783,7 @@ export default function App() {
         <div style={{ maxWidth: 700, margin: "0 auto", padding: 16 }}>
           <div style={{ fontSize: 12, color: theme.hi, fontWeight: 700, letterSpacing: 4, marginBottom: 16 }}>⚡ ADMIN — ALGORITHM CONTROL</div>
           <div style={{...card, marginBottom: 12, padding: 12, background: ABD + "15", border: "1px solid " + ABD}}>
-            <div style={{ fontSize: 10, color: theme.dim, lineHeight: 1.6 }}>Highlight or lowlight specific businesses in trail recommendations. Active controls are included in each itinerary request.</div>
+            <div style={{ fontSize: 10, color: theme.dim, lineHeight: 1.6 }}>Highlight or lowlight specific businesses in trail recommendations. Active controls are included in each trail request.</div>
           </div>
           <div style={card}>
             <div style={{ fontSize: 11, color: theme.hi, fontWeight: 700, letterSpacing: 2, marginBottom: 10 }}>ACTIVE CONTROLS</div>
@@ -800,7 +818,7 @@ export default function App() {
               <div><label style={lbl}>TYPE</label><div style={{ display: "flex", gap: 4 }}>{["highlight", "lowlight"].map(function (t) { return <button key={t} onClick={function () { setBType(t); }} style={{ ...sel(bType === t), flex: 1, textAlign: "center", fontSize: 9, textTransform: "capitalize" }}>{t}</button>; })}</div></div>
               <div><label style={lbl}>POWER %</label><input type="number" value={bPct} onChange={function (e) { setBPct(e.target.value); }} min="1" max="100" style={inp} /></div>
             </div>
-            <button onClick={function () { if (bName.trim()) { setBoosts(function (p) { return p.concat([{ id: Date.now() + "", name: bName, type: bType, pct: parseInt(bPct) || 15, on: true }]); }); setBName(""); setBType("highlight"); setBPct("15"); } }} style={btn(true, { width: "100%", letterSpacing: 3 })}>↗ ADD CONTROL</button>
+            <button onClick={function () { if (bName.trim()) { setBoosts(function (p) { return p.concat([{ id: Date.now() + "", name: bName, type: bType, pct: parseInt(bPct) || 15, on: true }]); }); setBName(""); setBType("highlight"); setBPct("15"); } }} style={btn(true, { width: "100%", letterSpacing: 3 })}>ADD CONTROL</button>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 16 }}>
             {[["TRAILS", "1,247"], ["USERS", "823"], ["PARTNERS", "34"]].map(function (m) {
@@ -812,8 +830,9 @@ export default function App() {
 
       {/* FOOTER */}
       <div style={{ textAlign: "center", padding: "40px 0 20px", marginTop: 40, borderTop: "1px solid " + INA }}>
-        <div style={{ fontSize: 16, marginBottom: 4 }}>↗</div>
-        <div style={{ fontSize: 9, color: theme.mut, letterSpacing: 5 }}>OFFTRAILED v3</div>
+        <TrailForkMark size={14} theme={theme} />
+        <div style={{ fontSize: 9, color: theme.mut, letterSpacing: 5, marginTop: 4 }}>OFFTRAILED v3</div>
+        <div style={{ fontSize: 8, color: theme.mut, opacity: 0.5, marginTop: 4 }}>The boring path fades. The novel path leads to discovery.</div>
       </div>
 
       <style>{`
