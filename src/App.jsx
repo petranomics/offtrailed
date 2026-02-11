@@ -78,10 +78,14 @@ export default function App() {
 
   // Builder
   var [loc, setLoc] = useState("Austin, Texas");
-  var [date, setDate] = useState("2026-02-09");
+  var today = new Date();
+  var todayStr = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
+  var nowStr = String(today.getHours()).padStart(2, "0") + ":" + String(today.getMinutes()).padStart(2, "0");
+  var [date, setDate] = useState(todayStr);
+  var [startTime, setStartTime] = useState("10:00");
+  var [endTime, setEndTime] = useState("15:00");
   var [vibe, setVibe] = useState("hidden-gems");
   var [budget, setBudget] = useState("$$");
-  var [duration, setDuration] = useState("half");
   var [mission, setMission] = useState("");
   var [loading, setLoading] = useState(false);
   var [ldMsg, setLdMsg] = useState("");
@@ -142,7 +146,9 @@ export default function App() {
     try {
       var activeBoosts = boosts.filter(function (b) { return b.on; });
       var boostHints = activeBoosts.length > 0 ? "\n\nAlgorithm Control (apply these biases):\n" + activeBoosts.map(function (b) { return (b.type === "highlight" ? "[+" + b.pct + "%] HIGHLIGHT" : "[-" + b.pct + "%] LOWLIGHT") + ": " + b.name; }).join("\n") : "";
-      var query = (mission ? "Focus on: " + mission + "\n" : "") + "Itinerary for " + loc + " on " + date + ", duration: " + duration + " day, vibe: " + vibe + ", budget: " + budget + ". " + (duration === "couple" ? "3-4" : duration === "half" ? "4-5" : duration === "full" ? "6-8" : "8-10") + " real stops." + boostHints + "\nJSON: {\"stops\":[{\"time\":\"10 AM\",\"name\":\"N\",\"category\":\"food\",\"description\":\"Desc\",\"insider_tip\":\"Tip\",\"est_cost\":\"$10\"}],\"trail_note\":\"Note\",\"total_est_cost\":\"$X\"}";
+      var durationHours = Math.abs((endTime.split(":")[0] - startTime.split(":")[0]) + (endTime.split(":")[1] - startTime.split(":")[1]) / 60);
+      var durationLabel = durationHours <= 3 ? "2-3 hours" : durationHours <= 6 ? "half day" : durationHours <= 10 ? "full day" : "overnight";
+      var query = (mission ? "Focus on: " + mission + "\n" : "") + "Itinerary for " + loc + " on " + date + " from " + startTime + " to " + endTime + " (" + durationLabel + "), vibe: " + vibe + ", budget: " + budget + ". Generate 6-10 real, verified stops.\nJSON: {\"stops\":[{\"time\":\"10:00 AM\",\"name\":\"N\",\"category\":\"food\",\"description\":\"Desc\",\"insider_tip\":\"Tip\",\"est_cost\":\"$10\"}],\"trail_note\":\"Note\",\"total_est_cost\":\"$X\"}" + boostHints;
       var res = await fetch("/api/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -282,12 +288,9 @@ export default function App() {
             <div style={{ marginBottom: 12 }}><label style={{ ...lbl, color: ACC }}>MISSION (optional)</label><textarea value={mission} onChange={function (e) { setMission(e.target.value); }} rows={2} placeholder='"Date night" or "SXSW music day"' style={{ ...inp, resize: "none" }}></textarea></div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
               <div><label style={lbl}>DATE</label><input type="date" value={date} onChange={function (e) { setDate(e.target.value); }} style={{ ...inp, colorScheme: "dark" }} /></div>
-              <div><label style={lbl}>TIME</label>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}>
-                  {[["couple", "2-3 hrs"], ["half", "Half Day"], ["full", "Full Day"], ["overnight", "Overnight"]].map(function (d) {
-                    return <button key={d[0]} onClick={function () { setDuration(d[0]); }} style={{ ...sel(duration === d[0]), textAlign: "center", fontSize: 9 }}>{d[1]}</button>;
-                  })}
-                </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <div><label style={lbl}>START TIME</label><input type="time" value={startTime} onChange={function (e) { setStartTime(e.target.value); }} style={{ ...inp, colorScheme: "dark" }} /></div>
+                <div><label style={lbl}>END TIME</label><input type="time" value={endTime} onChange={function (e) { setEndTime(e.target.value); }} style={{ ...inp, colorScheme: "dark" }} /></div>
               </div>
             </div>
             <div style={{ marginBottom: 12 }}><label style={lbl}>VIBE</label>
@@ -325,7 +328,7 @@ export default function App() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid " + INA }}>
                 <div>
                   <div style={{ fontSize: 11, color: HI, fontWeight: 700, letterSpacing: 4 }}>YOUR TRAIL</div>
-                  <div style={{ fontSize: 9, color: MUT }}>{loc} • {date} • {duration === "couple" ? "2-3 hrs" : duration === "half" ? "Half day" : duration === "full" ? "Full day" : "Overnight"} • {stops.length} stops</div>
+                  <div style={{ fontSize: 9, color: MUT }}>{loc} • {date} • {startTime}–{endTime} • {stops.length} stops</div>
                 </div>
                 <div style={{ display: "flex", gap: 4 }}>
                   {user && <button onClick={function () { setSaved(function (p) { return p.concat([{ id: "t" + Date.now(), title: loc + " Trail", date: date, stops: stops }]); }); }} style={btn(false, { padding: "4px 10px", fontSize: 9, color: ACC })}>★ SAVE</button>}
