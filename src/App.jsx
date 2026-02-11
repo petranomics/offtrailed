@@ -105,13 +105,14 @@ export default function App() {
   ]);
   var [newDeal, setNewDeal] = useState("");
 
-  // Admin
+  // Admin - Algorithm Control
   var [boosts, setBoosts] = useState([
-    { id: "1", name: "Coffee Haus", pct: 15, on: true },
-    { id: "2", name: "Museum of the Weird", pct: 10, on: true },
+    { id: "1", name: "Coffee Haus", type: "highlight", pct: 15, on: true },
+    { id: "2", name: "Museum of the Weird", type: "highlight", pct: 10, on: true },
   ]);
   var [bName, setBName] = useState("");
-  var [bPct, setBPct] = useState("10");
+  var [bType, setBType] = useState("highlight");
+  var [bPct, setBPct] = useState("15");
 
   var phr = ["Reading terrain...", "Scanning intel...", "Filtering traps...", "Plotting waypoints...", "Trail locked..."];
   useEffect(function () {
@@ -139,7 +140,9 @@ export default function App() {
     setNote("");
     setPg("results");
     try {
-      var query = (mission ? "Focus on: " + mission + "\n" : "") + "Itinerary for " + loc + " on " + date + ", duration: " + duration + " day, vibe: " + vibe + ", budget: " + budget + ". " + (duration === "couple" ? "3-4" : duration === "half" ? "4-5" : duration === "full" ? "6-8" : "8-10") + " real stops.\nJSON: {\"stops\":[{\"time\":\"10 AM\",\"name\":\"N\",\"category\":\"food\",\"description\":\"Desc\",\"insider_tip\":\"Tip\",\"est_cost\":\"$10\"}],\"trail_note\":\"Note\",\"total_est_cost\":\"$X\"}";
+      var activeBoosts = boosts.filter(function (b) { return b.on; });
+      var boostHints = activeBoosts.length > 0 ? "\n\nAlgorithm Control (apply these biases):\n" + activeBoosts.map(function (b) { return (b.type === "highlight" ? "[+" + b.pct + "%] HIGHLIGHT" : "[-" + b.pct + "%] LOWLIGHT") + ": " + b.name; }).join("\n") : "";
+      var query = (mission ? "Focus on: " + mission + "\n" : "") + "Itinerary for " + loc + " on " + date + ", duration: " + duration + " day, vibe: " + vibe + ", budget: " + budget + ". " + (duration === "couple" ? "3-4" : duration === "half" ? "4-5" : duration === "full" ? "6-8" : "8-10") + " real stops." + boostHints + "\nJSON: {\"stops\":[{\"time\":\"10 AM\",\"name\":\"N\",\"category\":\"food\",\"description\":\"Desc\",\"insider_tip\":\"Tip\",\"est_cost\":\"$10\"}],\"trail_note\":\"Note\",\"total_est_cost\":\"$X\"}";
       var res = await fetch("/api/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -497,30 +500,44 @@ export default function App() {
       {/* ===== ADMIN ===== */}
       {pg === "admin" && user && user.type === "admin" && (
         <div style={{ maxWidth: 700, margin: "0 auto", padding: 16 }}>
-          <div style={{ fontSize: 12, color: HI, fontWeight: 700, letterSpacing: 4, marginBottom: 16 }}>⚡ ADMIN — ALGORITHM BOOSTS</div>
+          <div style={{ fontSize: 12, color: HI, fontWeight: 700, letterSpacing: 4, marginBottom: 16 }}>⚡ ADMIN — ALGORITHM CONTROL</div>
+          <div style={{...card, marginBottom: 12, padding: 12, background: ABD + "15", border: "1px solid " + ABD}}>
+            <div style={{ fontSize: 10, color: DIM, lineHeight: 1.6 }}>Highlight or lowlight specific businesses in trail recommendations. Active controls are included in each itinerary request.</div>
+          </div>
           <div style={card}>
-            {boosts.map(function (b) {
-              return (
-                <div key={b.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid " + INA }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <span style={{ color: HI, fontWeight: 700 }}>{b.name}</span>
-                    <span style={{ color: ACC, fontWeight: 900 }}>+{b.pct}%</span>
+            <div style={{ fontSize: 11, color: HI, fontWeight: 700, letterSpacing: 2, marginBottom: 10 }}>ACTIVE CONTROLS</div>
+            {boosts.length === 0 ? (
+              <p style={{ color: MUT, fontSize: 10, textAlign: "center", margin: 0 }}>No controls yet. Add one below.</p>
+            ) : (
+              boosts.map(function (b) {
+                var isHighlight = b.type === "highlight";
+                return (
+                  <div key={b.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid " + INA }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1 }}>
+                      <span style={{ fontSize: 16, color: isHighlight ? OK : AC2 }}>{isHighlight ? "↗" : "↙"}</span>
+                      <div>
+                        <div style={{ color: HI, fontWeight: 700, fontSize: 12 }}>{b.name}</div>
+                        <div style={{ color: MUT, fontSize: 9, letterSpacing: 1 }}>{isHighlight ? "HIGHLIGHT" : "LOWLIGHT"} · {b.pct}%</div>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 9, color: b.on ? (isHighlight ? OK : AC2) : MUT, fontWeight: 700 }}>{b.on ? "ACTIVE" : "OFF"}</span>
+                      <button onClick={function () { setBoosts(function (p) { return p.map(function (x) { return x.id === b.id ? Object.assign({}, x, { on: !x.on }) : x; }); }); }} style={btn(false, { padding: "3px 8px", fontSize: 8 })}>{b.on ? "OFF" : "ON"}</button>
+                      <button onClick={function () { setBoosts(function (p) { return p.filter(function (x) { return x.id !== b.id; }); }); }} style={btn(false, { padding: "3px 8px", fontSize: 8, color: AC2 })}>DEL</button>
+                    </div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 9, color: b.on ? OK : AC2 }}>{b.on ? "ON" : "OFF"}</span>
-                    <button onClick={function () { setBoosts(function (p) { return p.map(function (x) { return x.id === b.id ? Object.assign({}, x, { on: !x.on }) : x; }); }); }} style={btn(false, { padding: "3px 8px", fontSize: 8 })}>{b.on ? "OFF" : "ON"}</button>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
           <div style={{ ...card, marginTop: 12 }}>
-            <div style={{ fontSize: 11, color: HI, fontWeight: 700, letterSpacing: 3, marginBottom: 8 }}>+ ADD BOOST</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
-              <div><label style={lbl}>SPOT NAME</label><input value={bName} onChange={function (e) { setBName(e.target.value); }} style={inp} /></div>
-              <div><label style={lbl}>BOOST %</label><input type="number" value={bPct} onChange={function (e) { setBPct(e.target.value); }} style={inp} /></div>
+            <div style={{ fontSize: 11, color: HI, fontWeight: 700, letterSpacing: 3, marginBottom: 12 }}>+ ADD CONTROL</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 12 }}>
+              <div><label style={lbl}>BUSINESS NAME</label><input value={bName} onChange={function (e) { setBName(e.target.value); }} placeholder="e.g., Coffee Haus" style={inp} /></div>
+              <div><label style={lbl}>TYPE</label><div style={{ display: "flex", gap: 4 }}>{["highlight", "lowlight"].map(function (t) { return <button key={t} onClick={function () { setBType(t); }} style={{ ...sel(bType === t), flex: 1, textAlign: "center", fontSize: 9, textTransform: "capitalize" }}>{t}</button>; })}</div></div>
+              <div><label style={lbl}>POWER %</label><input type="number" value={bPct} onChange={function (e) { setBPct(e.target.value); }} min="1" max="100" style={inp} /></div>
             </div>
-            <button onClick={function () { if (bName.trim()) { setBoosts(function (p) { return p.concat([{ id: Date.now() + "", name: bName, pct: parseInt(bPct) || 10, on: true }]); }); setBName(""); } }} style={btn(true, { width: "100%", letterSpacing: 3 })}>↗ ADD BOOST</button>
+            <button onClick={function () { if (bName.trim()) { setBoosts(function (p) { return p.concat([{ id: Date.now() + "", name: bName, type: bType, pct: parseInt(bPct) || 15, on: true }]); }); setBName(""); setBType("highlight"); setBPct("15"); } }} style={btn(true, { width: "100%", letterSpacing: 3 })}>↗ ADD CONTROL</button>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 16 }}>
             {[["TRAILS", "1,247"], ["USERS", "823"], ["PARTNERS", "34"]].map(function (m) {
