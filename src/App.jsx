@@ -590,6 +590,7 @@ export default function App() {
                   <div style={{ fontSize: 9, color: theme.mut }}>{loc} • {date} • {startTime}–{endTime} • {stops.length} stops</div>
                 </div>
                 <div style={{ display: "flex", gap: 4 }}>
+                  <button onClick={function () { var url = "https://www.google.com/maps/dir/" + stops.map(function (s) { return encodeURIComponent(s.name + ", " + loc); }).join("/"); window.open(url, "_blank"); }} style={btn(false, { padding: "4px 10px", fontSize: 9, color: theme.ac3 })}>MAP ↗</button>
                   {user && <button onClick={function () { setSaved(function (p) { return p.concat([{ id: "t" + Date.now(), title: loc + " Trail", date: date, stops: stops }]); }); }} style={btn(false, { padding: "4px 10px", fontSize: 9, color: theme.acc })}>★ SAVE</button>}
                   <button onClick={function () { setPg("home"); }} style={btn(false, { padding: "4px 10px", fontSize: 9 })}>← EDIT</button>
                 </div>
