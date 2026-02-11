@@ -270,14 +270,6 @@ export default function App() {
                   <li>Collaboration — vote and reorder shared trails</li>
                 </ul>
               </div>
-              <div style={{ ...card, flex: "1 1 220px" }}>
-                <div style={{ fontSize: 12, color: HI, fontWeight: 700, marginBottom: 8 }}>Demo Accounts</div>
-                <div style={{ color: DIM, fontSize: 12 }}>
-                  <div>demo@offtrailed.com / trail123</div>
-                  <div>biz@coffeehaus.com / biz123</div>
-                  <div>admin@offtrailed.com / admin123</div>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -286,11 +278,11 @@ export default function App() {
             <div style={{ fontSize: 12, letterSpacing: 4, color: HI, fontWeight: 700, marginBottom: 16 }}>↗ BUILD YOUR TRAIL</div>
             <div style={{ marginBottom: 12 }}><label style={lbl}>TRAILHEAD</label><input value={loc} onChange={function (e) { setLoc(e.target.value); }} placeholder="Austin, Texas" style={inp} /></div>
             <div style={{ marginBottom: 12 }}><label style={{ ...lbl, color: ACC }}>MISSION (optional)</label><textarea value={mission} onChange={function (e) { setMission(e.target.value); }} rows={2} placeholder='"Date night" or "SXSW music day"' style={{ ...inp, resize: "none" }}></textarea></div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, marginBottom: 12 }}>
               <div><label style={lbl}>DATE</label><input type="date" value={date} onChange={function (e) { setDate(e.target.value); }} style={{ ...inp, colorScheme: "dark" }} /></div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                <div><label style={lbl}>START TIME</label><input type="time" value={startTime} onChange={function (e) { setStartTime(e.target.value); }} style={{ ...inp, colorScheme: "dark" }} /></div>
-                <div><label style={lbl}>END TIME</label><input type="time" value={endTime} onChange={function (e) { setEndTime(e.target.value); }} style={{ ...inp, colorScheme: "dark" }} /></div>
+                <div><label style={lbl}>START</label><input type="time" value={startTime} onChange={function (e) { setStartTime(e.target.value); }} style={{ ...inp, colorScheme: "dark", fontSize: 12 }} /></div>
+                <div><label style={lbl}>END</label><input type="time" value={endTime} onChange={function (e) { setEndTime(e.target.value); }} style={{ ...inp, colorScheme: "dark", fontSize: 12 }} /></div>
               </div>
             </div>
             <div style={{ marginBottom: 12 }}><label style={lbl}>VIBE</label>
