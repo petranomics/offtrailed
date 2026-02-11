@@ -244,13 +244,13 @@ export default function App() {
           <div style={{ maxWidth: 700, margin: "12px auto", padding: 8 }}>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center", marginBottom: 12 }}>
               <div style={{ ...card, flex: "1 1 220px" }}>
-                <div style={{ fontSize: 12, color: HI, fontWeight: 700, marginBottom: 8 }}>Quick Start</div>
-                <pre style={{ background: SRF, padding: 10, color: MUT, fontSize: 12, borderRadius: 4, overflowX: "auto" }}>
-{`npm install
-cp .env.example .env
-# Edit .env and add your Anthropic key
-npm run dev`}
-                </pre>
+                <div style={{ fontSize: 12, color: HI, fontWeight: 700, marginBottom: 8 }}>How It Works</div>
+                <div style={{ color: DIM, fontSize: 12, lineHeight: 1.7 }}>
+                  <p style={{ margin: "0 0 6px" }}><strong style={{ color: FG }}>Pick Your Parameters:</strong> City, date, vibe (hidden gems, food, art, nightlife), budget, and duration.</p>
+                  <p style={{ margin: "0 0 6px" }}><strong style={{ color: FG }}>AI Scouts Live:</strong> Claude runs web searches in real-time to find current, verified stops — no stale lists.</p>
+                  <p style={{ margin: "0 0 6px" }}><strong style={{ color: FG }}>Get Your Trail:</strong> 6-10 unique stops with insider tips, cost estimates, and business perks waiting at check-in.</p>
+                  <p style={{ margin: 0 }}><strong style={{ color: FG }}>Break the Loop:</strong> Every trail is fresh. No tourist traps. Just discoveries.</p>
+                </div>
               </div>
               <div style={{ ...card, flex: "1 1 220px" }}>
                 <div style={{ fontSize: 12, color: HI, fontWeight: 700, marginBottom: 8 }}>Features</div>
