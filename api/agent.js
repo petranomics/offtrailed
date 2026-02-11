@@ -1,8 +1,70 @@
+// --- Response cache (in-memory, per-instance) ---
+const cache = new Map();
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+const CACHE_MAX = 100;
+
+function cacheKey(query) {
+  return query.toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+function getCached(key) {
+  const entry = cache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > CACHE_TTL) { cache.delete(key); return null; }
+  return entry.data;
+}
+
+function setCache(key, data) {
+  if (cache.size >= CACHE_MAX) {
+    const oldest = cache.keys().next().value;
+    cache.delete(oldest);
+  }
+  cache.set(key, { data, ts: Date.now() });
+}
+
+// --- Rate limiting (in-memory, per-instance) ---
+const rateLimits = new Map();
+const RATE_WINDOW = 15 * 60 * 1000; // 15 minutes
+const RATE_MAX = 10;
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  let entry = rateLimits.get(ip);
+  if (!entry || now - entry.windowStart > RATE_WINDOW) {
+    entry = { windowStart: now, count: 0 };
+    rateLimits.set(ip, entry);
+  }
+  entry.count++;
+  // Clean up old entries periodically
+  if (rateLimits.size > 500) {
+    for (const [k, v] of rateLimits) {
+      if (now - v.windowStart > RATE_WINDOW) rateLimits.delete(k);
+    }
+  }
+  return entry.count <= RATE_MAX;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  // Rate limit by IP
+  const ip = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown').split(',')[0].trim();
+  if (!checkRateLimit(ip)) {
+    return res.status(429).json({ error: 'Too many requests. Please wait a few minutes.' });
+  }
+
   try {
     const { query } = req.body || {};
     if (!query) return res.status(400).json({ error: 'Missing query' });
+
+    // Check cache
+    const key = cacheKey(query);
+    const cached = getCached(key);
+    if (cached) {
+      res.setHeader('Cache-Control', 'private, max-age=1800');
+      res.setHeader('X-Cache', 'HIT');
+      return res.status(200).json(cached);
+    }
 
     // Basic search (SerpAPI) - requires SEARCH_API_KEY in Vercel env
     const provider = process.env.SEARCH_PROVIDER || 'serpapi';
@@ -44,11 +106,18 @@ export default async function handler(req, res) {
     });
 
     const ajson = await ares.json();
-const raw = (ajson.content || []).filter(c => c.type === 'text').map(c => c.text || '').join('\n') || JSON.stringify(ajson);
-        const assistant = raw.replace(/<cite[^>]*>/g, '').replace(/<\/cite>/g, '');
+    const raw = (ajson.content || []).filter(c => c.type === 'text').map(c => c.text || '').join('\n') || JSON.stringify(ajson);
+    const assistant = raw.replace(/<cite[^>]*>/g, '').replace(/<\/cite>/g, '');
 
     const sources = top.map(t => t.link).filter(Boolean);
-    return res.status(200).json({ query, answer: assistant, sources });
+    const responseData = { query, answer: assistant, sources };
+
+    // Cache the response
+    setCache(key, responseData);
+
+    res.setHeader('Cache-Control', 'private, max-age=1800');
+    res.setHeader('X-Cache', 'MISS');
+    return res.status(200).json(responseData);
   } catch (err) {
     return res.status(500).json({ error: err.message || String(err) });
   }
