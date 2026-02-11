@@ -1,22 +1,150 @@
 import { useState, useEffect } from "react";
 
-const BG = "#0e1a12";
-const FG = "#8fbc6a";
-const HI = "#d4f0c0";
-const DIM = "rgba(143,188,106,0.6)";
-const MUT = "rgba(143,188,106,0.45)";
-const ACC = "#e8a835";
-const AC2 = "#d45a3a";
-const AC3 = "#6ab8d4";
-const OK = "#6abf5a";
-const CBG = "rgba(143,188,106,0.03)";
-const CBD = "rgba(143,188,106,0.12)";
-const AB = "rgba(143,188,106,0.08)";
-const ABD = "rgba(143,188,106,0.35)";
-const INA = "rgba(143,188,106,0.1)";
-const IBG = "rgba(143,188,106,0.04)";
-const IBD = "rgba(143,188,106,0.2)";
-const SRF = "rgba(14,26,18,0.94)";
+// THEMES - customize the entire look and feel
+const THEMES = {
+  "forest": {
+    name: "Dark Forest",
+    bg: "#0e1a12",
+    fg: "#8fbc6a",
+    hi: "#d4f0c0",
+    dim: "rgba(143,188,106,0.6)",
+    mut: "rgba(143,188,106,0.45)",
+    acc: "#e8a835",
+    ac2: "#d45a3a",
+    ac3: "#6ab8d4",
+    ok: "#6abf5a",
+    cbg: "rgba(143,188,106,0.03)",
+    cbd: "rgba(143,188,106,0.12)",
+    ab: "rgba(143,188,106,0.08)",
+    abd: "rgba(143,188,106,0.35)",
+    ina: "rgba(143,188,106,0.1)",
+    ibg: "rgba(143,188,106,0.04)",
+    ibd: "rgba(143,188,106,0.2)",
+    srf: "rgba(14,26,18,0.94)",
+    bgGradient: "linear-gradient(to bottom, #0a0f0c 0%, #0e1a12 50%, #0e1a12 100%)",
+    mountainColor: "#1a3a1f",
+    cloudColor: "rgba(143,188,106,0.15)",
+  },
+  "vaporwave": {
+    name: "Vaporwave",
+    bg: "#1a1a2e",
+    fg: "#ff006e",
+    hi: "#ffbe0b",
+    dim: "rgba(255,0,110,0.6)",
+    mut: "rgba(255,0,110,0.4)",
+    acc: "#00f5ff",
+    ac2: "#ff6b9d",
+    ac3: "#c239b3",
+    ok: "#ff006e",
+    cbg: "rgba(255,0,110,0.05)",
+    cbd: "rgba(255,0,110,0.15)",
+    ab: "rgba(255,0,110,0.1)",
+    abd: "rgba(255,0,110,0.3)",
+    ina: "rgba(255,0,110,0.08)",
+    ibg: "rgba(255,0,110,0.03)",
+    ibd: "rgba(255,0,110,0.15)",
+    srf: "rgba(26,26,46,0.96)",
+    bgGradient: "linear-gradient(135deg, #0f0419 0%, #1a1a2e 50%, #16213e 100%)",
+    mountainColor: "#c239b3",
+    cloudColor: "rgba(255,0,110,0.2)",
+  },
+  "bachelorette": {
+    name: "Bachelorette",
+    bg: "#fff5f8",
+    fg: "#d63384",
+    hi: "#ff1493",
+    dim: "rgba(214,51,132,0.6)",
+    mut: "rgba(214,51,132,0.45)",
+    acc: "#ffc300",
+    ac2: "#ff85a1",
+    ac3: "#a0428e",
+    ok: "#d63384",
+    cbg: "rgba(214,51,132,0.04)",
+    cbd: "rgba(214,51,132,0.12)",
+    ab: "rgba(214,51,132,0.08)",
+    abd: "rgba(214,51,132,0.25)",
+    ina: "rgba(214,51,132,0.08)",
+    ibg: "rgba(214,51,132,0.02)",
+    ibd: "rgba(214,51,132,0.15)",
+    srf: "rgba(255,245,248,0.95)",
+    bgGradient: "linear-gradient(135deg, #ffe4f0 0%, #fff5f8 50%, #ffd9e8 100%)",
+    mountainColor: "#d63384",
+    cloudColor: "rgba(255,105,180,0.2)",
+  }
+};
+
+function getTheme(themeName) {
+  return THEMES[themeName] || THEMES.forest;
+}
+
+// SVG Background Components
+function MountainBackground({ theme, opacity = 0.3 }) {
+  return (
+    <svg
+      viewBox="0 0 1000 300"
+      style={{
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        width: "100%",
+        height: "200px",
+        opacity: opacity,
+      }}
+    >
+      <defs>
+        <linearGradient id={`mtGrad${themeName}`} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor={theme.mountainColor} stopOpacity={0.5} />
+          <stop offset="100%" stopColor={theme.mountainColor} stopOpacity={0.1} />
+        </linearGradient>
+      </defs>
+      <polygon points="0,200 200,80 400,200" fill={`url(#mtGrad${themeName})`} />
+      <polygon points="300,200 550,40 800,200" fill={`url(#mtGrad${themeName})`} style={{opacity: 0.7}} />
+      <polygon points="700,200 900,100 1000,200" fill={`url(#mtGrad${themeName})`} style={{opacity: 0.6}} />
+    </svg>
+  );
+}
+
+function CloudBackground({ theme, opacity = 0.2 }) {
+  return (
+    <svg
+      viewBox="0 0 1000 200"
+      style={{
+        position: "absolute",
+        top: "20%",
+        left: 0,
+        width: "100%",
+        height: "150px",
+        opacity: opacity,
+      }}
+    >
+      <ellipse cx="150" cy="80" rx="80" ry="40" fill={theme.cloudColor} />
+      <ellipse cx="200" cy="100" rx="70" ry="35" fill={theme.cloudColor} />
+      <ellipse cx="100" cy="95" rx="60" ry="35" fill={theme.cloudColor} />
+      <ellipse cx="700" cy="60" rx="100" ry="45" fill={theme.cloudColor} />
+      <ellipse cx="800" cy="85" rx="85" ry="40" fill={theme.cloudColor} />
+      <ellipse cx="600" cy="75" rx="75" ry="38" fill={theme.cloudColor} />
+    </svg>
+  );
+}
+
+// Alias the default theme colors for backwards compatibility
+const BG = THEMES.forest.bg;
+const FG = THEMES.forest.fg;
+const HI = THEMES.forest.hi;
+const DIM = THEMES.forest.dim;
+const MUT = THEMES.forest.mut;
+const ACC = THEMES.forest.acc;
+const AC2 = THEMES.forest.ac2;
+const AC3 = THEMES.forest.ac3;
+const OK = THEMES.forest.ok;
+const CBG = THEMES.forest.cbg;
+const CBD = THEMES.forest.cbd;
+const AB = THEMES.forest.ab;
+const ABD = THEMES.forest.abd;
+const INA = THEMES.forest.ina;
+const IBG = THEMES.forest.ibg;
+const IBD = THEMES.forest.ibd;
+const SRF = THEMES.forest.srf;
 
 const USERS = {
   "demo@offtrailed.com": { pw: "trail123", name: "Alex Rivera", type: "user" },
@@ -41,17 +169,17 @@ const DEMO_COLLAB = {
   ]
 };
 
-// Styles
-const inp = { width: "100%", background: IBG, border: "1px solid " + IBD, color: FG, fontFamily: "monospace", fontSize: 13, padding: "10px 12px", outline: "none", borderRadius: 3, boxSizing: "border-box" };
-const lbl = { fontSize: 9, letterSpacing: 3, color: DIM, fontFamily: "monospace", display: "block", marginBottom: 6 };
-const card = { background: CBG, border: "1px solid " + CBD, borderRadius: 4, padding: 16 };
+  // Styles (uses active theme)
+  var inp = { width: "100%", background: theme.ibg, border: "1px solid " + theme.ibd, color: theme.fg, fontFamily: "monospace", fontSize: 13, padding: "10px 12px", outline: "none", borderRadius: 3, boxSizing: "border-box" };
+  var lbl = { fontSize: 9, letterSpacing: 3, color: theme.dim, fontFamily: "monospace", display: "block", marginBottom: 6 };
+  var card = { background: theme.cbg, border: "1px solid " + theme.cbd, borderRadius: 4, padding: 16 };
 
-function btn(pri, extra) {
-  return { background: pri ? FG : "transparent", color: pri ? BG : FG, border: pri ? "none" : "1px solid " + INA, fontFamily: "monospace", fontSize: 11, padding: "10px 20px", cursor: "pointer", borderRadius: 3, letterSpacing: 2, fontWeight: pri ? 700 : 400, ...(extra || {}) };
-}
-function sel(active) {
-  return { background: active ? AB : CBG, border: "1px solid " + (active ? ABD : INA), color: active ? FG : MUT, fontFamily: "monospace", cursor: "pointer", borderRadius: 3, padding: "6px 8px", fontSize: 10 };
-}
+  function btn(pri, extra) {
+    return { background: pri ? theme.fg : "transparent", color: pri ? theme.bg : theme.fg, border: pri ? "none" : "1px solid " + theme.ina, fontFamily: "monospace", fontSize: 11, padding: "10px 20px", cursor: "pointer", borderRadius: 3, letterSpacing: 2, fontWeight: pri ? 700 : 400, ...(extra || {}) };
+  }
+  function sel(active) {
+    return { background: active ? theme.ab : theme.cbg, border: "1px solid " + (active ? theme.abd : theme.ina), color: active ? theme.fg : theme.mut, fontFamily: "monospace", cursor: "pointer", borderRadius: 3, padding: "6px 8px", fontSize: 10 };
+  }
 
 function extractJSON(raw) {
   var t = raw.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
@@ -69,6 +197,9 @@ function stripTags(s) {
 }
 
 export default function App() {
+  var [themeName, setThemeName] = useState("forest");
+  var theme = getTheme(themeName);
+  
   var [pg, setPg] = useState("home");
   var [user, setUser] = useState(null);
   var [email, setEmail] = useState("demo@offtrailed.com");
@@ -183,20 +314,20 @@ export default function App() {
   // Nav helper
   function navBtn(target, label) {
     return (
-      <button key={target} onClick={function () { setPg(target); }} style={{ background: pg === target ? AB : "transparent", border: "1px solid " + (pg === target ? ABD : "transparent"), color: pg === target ? FG : MUT, fontFamily: "monospace", fontSize: 8, padding: "4px 8px", cursor: "pointer", borderRadius: 3, letterSpacing: 2 }}>{label}</button>
+      <button key={target} onClick={function () { setPg(target); }} style={{ background: pg === target ? theme.ab : "transparent", border: "1px solid " + (pg === target ? theme.abd : "transparent"), color: pg === target ? theme.fg : theme.mut, fontFamily: "monospace", fontSize: 8, padding: "4px 8px", cursor: "pointer", borderRadius: 3, letterSpacing: 2 }}>{label}</button>
     );
   }
 
   var checkedCount = stops.filter(function (s) { return s.checkedIn; }).length;
 
   return (
-    <div style={{ background: BG, color: FG, minHeight: "100vh", fontFamily: "'Courier New', monospace" }}>
+    <div style={{ background: theme.bg, color: theme.fg, minHeight: "100vh", fontFamily: "'Courier New', monospace" }}>
 
       {/* ===== HEADER ===== */}
-      <div style={{ position: "sticky", top: 0, zIndex: 40, padding: "8px 12px", background: SRF, borderBottom: "1px solid " + CBD, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 40, padding: "8px 12px", background: theme.srf, borderBottom: "1px solid " + theme.cbd, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }} onClick={function () { setPg("home"); }}>
           <span style={{ fontSize: 16 }}>↗</span>
-          <span style={{ fontSize: 11, letterSpacing: 5, color: HI, fontWeight: 700 }}>OFFTRAILED</span>
+          <span style={{ fontSize: 11, letterSpacing: 5, color: theme.hi, fontWeight: 700 }}>OFFTRAILED</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           {user && user.type === "user" && (
@@ -206,8 +337,8 @@ export default function App() {
           {user && user.type === "admin" && navBtn("admin", "ADMIN")}
           {user ? (
             <span style={{ marginLeft: 8, display: "flex", alignItems: "center", gap: 4 }}>
-              <span style={{ width: 20, height: 20, borderRadius: "50%", background: AB, border: "1px solid " + ABD, fontSize: 8, fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{user.name[0]}</span>
-              <button onClick={function () { setUser(null); setPg("home"); }} style={{ fontSize: 8, color: MUT, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace" }}>OUT</button>
+              <span style={{ width: 20, height: 20, borderRadius: "50%", background: theme.ab, border: "1px solid " + theme.abd, fontSize: 8, fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{user.name[0]}</span>
+              <button onClick={function () { setUser(null); setPg("home"); }} style={{ fontSize: 8, color: theme.mut, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace" }}>OUT</button>
             </span>
           ) : (
             <button onClick={function () { setShowAuth(!showAuth); }} style={btn(false, { padding: "4px 12px", fontSize: 9 })}>SIGN IN</button>
@@ -219,17 +350,17 @@ export default function App() {
       {showAuth && !user && (
         <div style={{ maxWidth: 360, margin: "0 auto", padding: "12px 16px" }}>
           <div style={{ ...card, padding: 20 }}>
-            <div style={{ fontSize: 10, letterSpacing: 3, color: HI, fontWeight: 700, marginBottom: 12 }}>SIGN IN</div>
+            <div style={{ fontSize: 10, letterSpacing: 3, color: theme.hi, fontWeight: 700, marginBottom: 12 }}>SIGN IN</div>
             <div style={{ marginBottom: 8 }}><label style={lbl}>EMAIL</label><input value={email} onChange={function (e) { setEmail(e.target.value); }} style={inp} /></div>
             <div style={{ marginBottom: 8 }}><label style={lbl}>PASSWORD</label><input type="password" value={pw} onChange={function (e) { setPw(e.target.value); }} style={inp} /></div>
-            {authErr && <p style={{ fontSize: 10, color: AC2, marginBottom: 6 }}>{authErr}</p>}
+            {authErr && <p style={{ fontSize: 10, color: theme.ac2, marginBottom: 6 }}>{authErr}</p>}
             <button onClick={login} style={btn(true, { width: "100%", marginBottom: 10 })}>↗ SIGN IN</button>
-            <div style={{ borderTop: "1px solid " + INA, paddingTop: 8 }}>
-              <p style={{ fontSize: 8, color: MUT, textAlign: "center", letterSpacing: 2, marginBottom: 6 }}>DEMO ACCOUNTS (click to fill)</p>
+            <div style={{ borderTop: "1px solid " + theme.ina, paddingTop: 8 }}>
+              <p style={{ fontSize: 8, color: theme.mut, textAlign: "center", letterSpacing: 2, marginBottom: 6 }}>DEMO ACCOUNTS (click to fill)</p>
               {[["demo@offtrailed.com", "trail123", "🧭 Explorer"], ["biz@coffeehaus.com", "biz123", "☕ Business"], ["admin@offtrailed.com", "admin123", "⚡ Admin"]].map(function (a) {
                 return (
-                  <button key={a[0]} onClick={function () { setEmail(a[0]); setPw(a[1]); }} style={{ display: "block", width: "100%", textAlign: "left", padding: "5px 8px", marginBottom: 3, background: email === a[0] ? AB : "transparent", border: "1px solid " + (email === a[0] ? ABD : INA), borderRadius: 3, cursor: "pointer", color: FG, fontFamily: "monospace", fontSize: 9 }}>
-                    {a[2]} — <span style={{ color: MUT, fontSize: 8 }}>{a[0]}</span>
+                  <button key={a[0]} onClick={function () { setEmail(a[0]); setPw(a[1]); }} style={{ display: "block", width: "100%", textAlign: "left", padding: "5px 8px", marginBottom: 3, background: email === a[0] ? theme.ab : "transparent", border: "1px solid " + (email === a[0] ? theme.abd : theme.ina), borderRadius: 3, cursor: "pointer", color: theme.fg, fontFamily: "monospace", fontSize: 9 }}>
+                    {a[2]} — <span style={{ color: theme.mut, fontSize: 8 }}>{a[0]}</span>
                   </button>
                 );
               })}
@@ -240,30 +371,63 @@ export default function App() {
 
       {/* ===== HOME / TRAIL BUILDER ===== */}
       {pg === "home" && (
-        <div style={{ maxWidth: 600, margin: "0 auto", padding: 16 }}>
+        <div style={{ maxWidth: 600, margin: "0 auto", padding: 16, position: "relative" }}>
+          {/* Background design */}
+          <div style={{ position: "fixed", top: 60, left: 0, right: 0, height: "400px", background: theme.bgGradient, zIndex: -1, pointerEvents: "none" }}>
+            <CloudBackground theme={theme} opacity={0.25} />
+            <MountainBackground theme={theme} opacity={0.3} />
+          </div>
+
+          {/* Theme Selector */}
+          <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 24, marginTop: 12 }}>
+            {Object.keys(THEMES).map(function (tKey) {
+              var t = THEMES[tKey];
+              return (
+                <button
+                  key={tKey}
+                  onClick={function () { setThemeName(tKey); }}
+                  style={{
+                    padding: "6px 12px",
+                    background: themeName === tKey ? t.fg : "transparent",
+                    color: themeName === tKey ? t.bg : t.fg,
+                    border: "1px solid " + (themeName === tKey ? t.fg : "rgba(255,255,255,0.3)"),
+                    fontFamily: "monospace",
+                    fontSize: 9,
+                    cursor: "pointer",
+                    borderRadius: 3,
+                    letterSpacing: 2,
+                    fontWeight: themeName === tKey ? 700 : 400,
+                  }}
+                >
+                  {t.name.toUpperCase()}
+                </button>
+              );
+            })}
+          </div>
+
           {/* Restored Landing / Intro */}
           <div style={{ textAlign: "center", padding: "30px 0 10px" }}>
             <div style={{ fontSize: 48, marginBottom: 8 }}>↗</div>
-            <h1 style={{ fontSize: 32, fontWeight: 900, color: HI, letterSpacing: 8, margin: "0 0 4px" }}>OFFTRAILED</h1>
-            <p style={{ color: FG, letterSpacing: 3, fontSize: 13, margin: 0 }}>Break the loop. Find what's new.</p>
-            <p style={{ color: DIM, fontSize: 12, marginTop: 8, maxWidth: 560, marginLeft: "auto", marginRight: "auto" }}>AI-powered discovery trails that help you find novel, underrated local experiences. No tourist traps.</p>
-            {user && <p style={{ fontSize: 10, color: ACC, marginTop: 6 }}>Welcome back, {user.name}</p>}
+            <h1 style={{ fontSize: 32, fontWeight: 900, color: theme.hi, letterSpacing: 8, margin: "0 0 4px" }}>OFFTRAILED</h1>
+            <p style={{ color: theme.fg, letterSpacing: 3, fontSize: 13, margin: 0 }}>Break the loop. Find what's new.</p>
+            <p style={{ color: theme.dim, fontSize: 12, marginTop: 8, maxWidth: 560, marginLeft: "auto", marginRight: "auto" }}>AI-powered discovery trails that help you find novel, underrated local experiences. No tourist traps.</p>
+            {user && <p style={{ fontSize: 10, color: theme.acc, marginTop: 6 }}>Welcome back, {user.name}</p>}
           </div>
 
           <div style={{ maxWidth: 700, margin: "12px auto", padding: 8 }}>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center", marginBottom: 12 }}>
               <div style={{ ...card, flex: "1 1 220px" }}>
-                <div style={{ fontSize: 12, color: HI, fontWeight: 700, marginBottom: 8 }}>How It Works</div>
-                <div style={{ color: DIM, fontSize: 12, lineHeight: 1.7 }}>
-                  <p style={{ margin: "0 0 6px" }}><strong style={{ color: FG }}>Pick Your Parameters:</strong> City, date, vibe (hidden gems, food, art, nightlife), budget, and duration.</p>
-                  <p style={{ margin: "0 0 6px" }}><strong style={{ color: FG }}>AI Scouts Live:</strong> Claude runs web searches in real-time to find current, verified stops — no stale lists.</p>
-                  <p style={{ margin: "0 0 6px" }}><strong style={{ color: FG }}>Get Your Trail:</strong> 6-10 unique stops with insider tips, cost estimates, and business perks waiting at check-in.</p>
-                  <p style={{ margin: 0 }}><strong style={{ color: FG }}>Break the Loop:</strong> Every trail is fresh. No tourist traps. Just discoveries.</p>
+                <div style={{ fontSize: 12, color: theme.hi, fontWeight: 700, marginBottom: 8 }}>How It Works</div>
+                <div style={{ color: theme.dim, fontSize: 12, lineHeight: 1.7 }}>
+                  <p style={{ margin: "0 0 6px" }}><strong style={{ color: theme.fg }}>Pick Your Parameters:</strong> City, date, vibe (hidden gems, food, art, nightlife), budget, and duration.</p>
+                  <p style={{ margin: "0 0 6px" }}><strong style={{ color: theme.fg }}>AI Scouts Live:</strong> Claude runs web searches in real-time to find current, verified stops — no stale lists.</p>
+                  <p style={{ margin: "0 0 6px" }}><strong style={{ color: theme.fg }}>Get Your Trail:</strong> 6-10 unique stops with insider tips, cost estimates, and business perks waiting at check-in.</p>
+                  <p style={{ margin: 0 }}><strong style={{ color: theme.fg }}>Break the Loop:</strong> Every trail is fresh. No tourist traps. Just discoveries.</p>
                 </div>
               </div>
               <div style={{ ...card, flex: "1 1 220px" }}>
-                <div style={{ fontSize: 12, color: HI, fontWeight: 700, marginBottom: 8 }}>Features</div>
-                <ul style={{ color: DIM, fontSize: 12, lineHeight: 1.6, margin: 0, paddingLeft: 16 }}>
+                <div style={{ fontSize: 12, color: theme.hi, fontWeight: 700, marginBottom: 8 }}>Features</div>
+                <ul style={{ color: theme.dim, fontSize: 12, lineHeight: 1.6, margin: 0, paddingLeft: 16 }}>
                   <li>Trail Builder — location, date, duration, vibe, budget</li>
                   <li>AI-Powered — Claude + web search for live, local results</li>
                   <li>Check-ins & incentives — redeem deals at stops</li>
@@ -275,9 +439,9 @@ export default function App() {
 
           {/* Builder */}
           <div style={{ ...card, padding: 24 }}>
-            <div style={{ fontSize: 12, letterSpacing: 4, color: HI, fontWeight: 700, marginBottom: 16 }}>↗ BUILD YOUR TRAIL</div>
+            <div style={{ fontSize: 12, letterSpacing: 4, color: theme.hi, fontWeight: 700, marginBottom: 16 }}>↗ BUILD YOUR TRAIL</div>
             <div style={{ marginBottom: 12 }}><label style={lbl}>TRAILHEAD</label><input value={loc} onChange={function (e) { setLoc(e.target.value); }} placeholder="Austin, Texas" style={inp} /></div>
-            <div style={{ marginBottom: 12 }}><label style={{ ...lbl, color: ACC }}>MISSION (optional)</label><textarea value={mission} onChange={function (e) { setMission(e.target.value); }} rows={2} placeholder='"Date night" or "SXSW music day"' style={{ ...inp, resize: "none" }}></textarea></div>
+            <div style={{ marginBottom: 12 }}><label style={{ ...lbl, color: theme.acc }}>MISSION (optional)</label><textarea value={mission} onChange={function (e) { setMission(e.target.value); }} rows={2} placeholder='"Date night" or "SXSW music day"' style={{ ...inp, resize: "none" }}></textarea></div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12, marginBottom: 12 }}>
               <div><label style={lbl}>DATE</label><input type="date" value={date} onChange={function (e) { setDate(e.target.value); }} style={{ ...inp, colorScheme: "dark" }} /></div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -312,46 +476,46 @@ export default function App() {
           {loading && (
             <div style={{ textAlign: "center", padding: "60px 0" }}>
               <div style={{ fontSize: 32 }}>↗</div>
-              <p style={{ fontSize: 11, color: MUT, letterSpacing: 3, marginTop: 12 }}>{ldMsg}</p>
+              <p style={{ fontSize: 11, color: theme.mut, letterSpacing: 3, marginTop: 12 }}>{ldMsg}</p>
             </div>
           )}
           {!loading && stops.length > 0 && (
             <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid " + INA }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid " + theme.ina }}>
                 <div>
-                  <div style={{ fontSize: 11, color: HI, fontWeight: 700, letterSpacing: 4 }}>YOUR TRAIL</div>
-                  <div style={{ fontSize: 9, color: MUT }}>{loc} • {date} • {startTime}–{endTime} • {stops.length} stops</div>
+                  <div style={{ fontSize: 11, color: theme.hi, fontWeight: 700, letterSpacing: 4 }}>YOUR TRAIL</div>
+                  <div style={{ fontSize: 9, color: theme.mut }}>{loc} • {date} • {startTime}–{endTime} • {stops.length} stops</div>
                 </div>
                 <div style={{ display: "flex", gap: 4 }}>
-                  {user && <button onClick={function () { setSaved(function (p) { return p.concat([{ id: "t" + Date.now(), title: loc + " Trail", date: date, stops: stops }]); }); }} style={btn(false, { padding: "4px 10px", fontSize: 9, color: ACC })}>★ SAVE</button>}
+                  {user && <button onClick={function () { setSaved(function (p) { return p.concat([{ id: "t" + Date.now(), title: loc + " Trail", date: date, stops: stops }]); }); }} style={btn(false, { padding: "4px 10px", fontSize: 9, color: theme.acc })}>★ SAVE</button>}
                   <button onClick={function () { setPg("home"); }} style={btn(false, { padding: "4px 10px", fontSize: 9 })}>← EDIT</button>
                 </div>
               </div>
 
               {stops.map(function (s, i) {
                 return (
-                  <div key={i} onClick={function () { setActive(active === i ? null : i); }} style={{ ...card, padding: "12px 12px 12px 40px", marginBottom: 4, position: "relative", cursor: "pointer", background: active === i ? AB : CBG, border: "1px solid " + (active === i ? ABD : CBD) }}>
+                  <div key={i} onClick={function () { setActive(active === i ? null : i); }} style={{ ...card, padding: "12px 12px 12px 40px", marginBottom: 4, position: "relative", cursor: "pointer", background: active === i ? theme.ab : theme.cbg, border: "1px solid " + (active === i ? theme.abd : theme.cbd) }}>
                     {/* Number circle */}
-                    <div style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)", width: 22, height: 22, borderRadius: "50%", background: s.checkedIn ? OK : (active === i ? FG : CBG), border: "2px solid " + (s.checkedIn ? OK : (active === i ? FG : MUT)), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 700, color: (s.checkedIn || active === i) ? BG : MUT }}>
+                    <div style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)", width: 22, height: 22, borderRadius: "50%", background: s.checkedIn ? theme.ok : (active === i ? theme.fg : theme.cbg), border: "2px solid " + (s.checkedIn ? theme.ok : (active === i ? theme.fg : theme.mut)), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 700, color: (s.checkedIn || active === i) ? theme.bg : theme.mut }}>
                       {s.checkedIn ? "✓" : i + 1}
                     </div>
                     {/* Meta */}
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 10, color: ACC, fontWeight: 700 }}>{s.time}</span>
-                      <span style={{ fontSize: 8, color: MUT, border: "1px solid " + INA, padding: "1px 5px", borderRadius: 2, textTransform: "uppercase", letterSpacing: 2 }}>{s.category}</span>
-                      {s.est_cost && <span style={{ fontSize: 8, color: ACC }}>{s.est_cost}</span>}
-                      {s.checkedIn && <span style={{ fontSize: 8, color: OK, marginLeft: "auto" }}>✓ CHECKED IN</span>}
+                      <span style={{ fontSize: 10, color: theme.acc, fontWeight: 700 }}>{s.time}</span>
+                      <span style={{ fontSize: 8, color: theme.mut, border: "1px solid " + theme.ina, padding: "1px 5px", borderRadius: 2, textTransform: "uppercase", letterSpacing: 2 }}>{s.category}</span>
+                      {s.est_cost && <span style={{ fontSize: 8, color: theme.acc }}>{s.est_cost}</span>}
+                      {s.checkedIn && <span style={{ fontSize: 8, color: theme.ok, marginLeft: "auto" }}>✓ CHECKED IN</span>}
                     </div>
-                    <div style={{ fontSize: 13, color: HI, fontWeight: 700, marginBottom: 3 }}>{s.name}</div>
-                    <p style={{ fontSize: 11, color: DIM, lineHeight: 1.7, margin: 0 }}>{s.description}</p>
-                    {s.incentive && <div style={{ marginTop: 6, padding: "4px 8px", background: ACC + "15", border: "1px solid " + ACC + "40", borderRadius: 3, fontSize: 9, color: ACC }}>🎁 {s.incentive}</div>}
+                    <div style={{ fontSize: 13, color: theme.hi, fontWeight: 700, marginBottom: 3 }}>{s.name}</div>
+                    <p style={{ fontSize: 11, color: theme.dim, lineHeight: 1.7, margin: 0 }}>{s.description}</p>
+                    {s.incentive && <div style={{ marginTop: 6, padding: "4px 8px", background: theme.acc + "15", border: "1px solid " + theme.acc + "40", borderRadius: 3, fontSize: 9, color: theme.acc }}>🎁 {s.incentive}</div>}
                     {active === i && (
-                      <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid " + INA }}>
-                        {s.insider_tip && <p style={{ fontSize: 10, color: ACC, marginBottom: 6, margin: "0 0 6px" }}>💡 {s.insider_tip}</p>}
+                      <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid " + theme.ina }}>
+                        {s.insider_tip && <p style={{ fontSize: 10, color: theme.acc, marginBottom: 6, margin: "0 0 6px" }}>💡 {s.insider_tip}</p>}
                         {!s.checkedIn ? (
-                          <button onClick={function (e) { e.stopPropagation(); setStops(function (p) { return p.map(function (x, j) { return j === i ? Object.assign({}, x, { checkedIn: true }) : x; }); }); }} style={btn(true, { padding: "8px 16px", fontSize: 10, background: OK, letterSpacing: 3 })}>📍 CHECK IN</button>
+                          <button onClick={function (e) { e.stopPropagation(); setStops(function (p) { return p.map(function (x, j) { return j === i ? Object.assign({}, x, { checkedIn: true }) : x; }); }); }} style={btn(true, { padding: "8px 16px", fontSize: 10, background: theme.ok, letterSpacing: 3 })}>📍 CHECK IN</button>
                         ) : (
-                          <span style={{ fontSize: 10, color: OK }}>📍 Checked in!{s.incentive ? " — Show for: " + s.incentive : ""}</span>
+                          <span style={{ fontSize: 10, color: theme.ok }}>📍 Checked in!{s.incentive ? " — Show for: " + s.incentive : ""}</span>
                         )}
                       </div>
                     )}
@@ -359,7 +523,7 @@ export default function App() {
                 );
               })}
 
-              {note && <div style={{ marginTop: 12, padding: 12, borderLeft: "3px solid " + AC2, background: AC2 + "08", borderRadius: 3 }}><p style={{ fontSize: 11, color: AC2, lineHeight: 1.7, margin: 0 }}>{note}</p></div>}
+              {note && <div style={{ marginTop: 12, padding: 12, borderLeft: "3px solid " + theme.ac2, background: theme.ac2 + "08", borderRadius: 3 }}><p style={{ fontSize: 11, color: theme.ac2, lineHeight: 1.7, margin: 0 }}>{note}</p></div>}
 
               {/* Reroute */}
               <div style={{ ...card, marginTop: 12 }}>
@@ -371,10 +535,10 @@ export default function App() {
               </div>
 
               {/* Check-in progress */}
-              <div style={{ marginTop: 12, textAlign: "center", padding: 12, background: AB, borderRadius: 4 }}>
+              <div style={{ marginTop: 12, textAlign: "center", padding: 12, background: theme.ab, borderRadius: 4 }}>
                 <span style={{ fontSize: 10, letterSpacing: 2 }}>{checkedCount} / {stops.length} CHECKED IN</span>
-                <div style={{ width: "100%", height: 6, background: INA, borderRadius: 3, marginTop: 8 }}>
-                  <div style={{ height: 6, borderRadius: 3, background: OK, width: (checkedCount / stops.length * 100) + "%", transition: "width 0.3s" }}></div>
+                <div style={{ width: "100%", height: 6, background: theme.ina, borderRadius: 3, marginTop: 8 }}>
+                  <div style={{ height: 6, borderRadius: 3, background: theme.ok, width: (checkedCount / stops.length * 100) + "%", transition: "width 0.3s" }}></div>
                 </div>
               </div>
             </div>
@@ -382,7 +546,7 @@ export default function App() {
           {!loading && stops.length === 0 && (
             <div style={{ textAlign: "center", padding: "60px 0" }}>
               <div style={{ fontSize: 32 }}>↗</div>
-              {note && <p style={{ fontSize: 11, color: AC2, marginTop: 12 }}>{note}</p>}
+              {note && <p style={{ fontSize: 11, color: theme.ac2, marginTop: 12 }}>{note}</p>}
               <button onClick={function () { setPg("home"); }} style={btn(false, { marginTop: 12, fontSize: 10 })}>← Home</button>
             </div>
           )}
@@ -395,16 +559,16 @@ export default function App() {
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
             <div style={{ width: 40, height: 40, borderRadius: "50%", background: AB, border: "2px solid " + ABD, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 900 }}>{user.name[0]}</div>
             <div>
-              <div style={{ fontSize: 15, color: HI, fontWeight: 700 }}>{user.name}</div>
-              <div style={{ fontSize: 10, color: MUT }}>{user.email}</div>
+              <div style={{ fontSize: 15, color: theme.hi, fontWeight: 700 }}>{user.name}</div>
+              <div style={{ fontSize: 10, color: theme.mut }}>{user.email}</div>
             </div>
           </div>
-          <div style={{ fontSize: 12, color: HI, fontWeight: 700, letterSpacing: 4, marginBottom: 12 }}>★ SAVED TRAILS ({saved.length})</div>
+          <div style={{ fontSize: 12, color: theme.hi, fontWeight: 700, letterSpacing: 4, marginBottom: 12 }}>★ SAVED TRAILS ({saved.length})</div>
           {saved.map(function (tr) {
             return (
               <div key={tr.id} style={{ ...card, marginBottom: 8 }}>
-                <div style={{ fontSize: 12, color: HI, fontWeight: 700 }}>{tr.title}</div>
-                <div style={{ fontSize: 9, color: MUT }}>{tr.date} • {tr.stops.length} stops</div>
+                <div style={{ fontSize: 12, color: theme.hi, fontWeight: 700 }}>{tr.title}</div>
+                <div style={{ fontSize: 9, color: theme.mut }}>{tr.date} • {tr.stops.length} stops</div>
               </div>
             );
           })}
@@ -414,11 +578,11 @@ export default function App() {
       {/* ===== COLLAB ===== */}
       {pg === "collab" && user && (
         <div style={{ maxWidth: 600, margin: "0 auto", padding: 16 }}>
-          <div style={{ fontSize: 12, color: HI, fontWeight: 700, letterSpacing: 4, marginBottom: 16 }}>👥 COLLABORATIVE TRAILS</div>
+          <div style={{ fontSize: 12, color: theme.hi, fontWeight: 700, letterSpacing: 4, marginBottom: 16 }}>👥 COLLABORATIVE TRAILS</div>
           <div style={card}>
-            <div style={{ fontSize: 14, color: HI, fontWeight: 700, marginBottom: 4 }}>{DEMO_COLLAB.title}</div>
-            <div style={{ fontSize: 9, color: MUT, marginBottom: 12 }}>Members: {DEMO_COLLAB.members.join(", ")}</div>
-            <div style={{ fontSize: 10, color: HI, letterSpacing: 3, marginBottom: 8 }}>Vote 👍👎 · Reorder ▲▼</div>
+            <div style={{ fontSize: 14, color: theme.hi, fontWeight: 700, marginBottom: 4 }}>{DEMO_COLLAB.title}</div>
+            <div style={{ fontSize: 9, color: theme.mut, marginBottom: 12 }}>Members: {DEMO_COLLAB.members.join(", ")}</div>
+            <div style={{ fontSize: 10, color: theme.hi, letterSpacing: 3, marginBottom: 8 }}>Vote 👍👎 · Reorder ▲▼</div>
             {DEMO_COLLAB.stops.map(function (s, i) {
               var vk = "c1-" + i;
               var my = colVotes[vk];
@@ -433,18 +597,18 @@ export default function App() {
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                      <span style={{ fontSize: 10, color: ACC, fontWeight: 700 }}>{s.time}</span>
-                      <span style={{ fontSize: 12, color: HI, fontWeight: 700 }}>{s.name}</span>
+                      <span style={{ fontSize: 10, color: theme.acc, fontWeight: 700 }}>{s.time}</span>
+                      <span style={{ fontSize: 12, color: theme.hi, fontWeight: 700 }}>{s.name}</span>
                     </div>
-                    <p style={{ fontSize: 10, color: DIM, lineHeight: 1.7, margin: "0 0 8px" }}>{s.description}</p>
+                    <p style={{ fontSize: 10, color: theme.dim, lineHeight: 1.7, margin: "0 0 8px" }}>{s.description}</p>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <button onClick={function () { setColVotes(function (p) { var n = Object.assign({}, p); n[vk] = n[vk] === "up" ? null : "up"; return n; }); }} style={{ background: my === "up" ? OK + "20" : "transparent", border: "1px solid " + (my === "up" ? OK : INA), borderRadius: 3, padding: "3px 10px", cursor: "pointer" }}>
-                        👍 <span style={{ fontSize: 10, color: OK, fontWeight: 700 }}>{up}</span>
+                        👍 <span style={{ fontSize: 10, color: theme.ok, fontWeight: 700 }}>{up}</span>
                       </button>
                       <button onClick={function () { setColVotes(function (p) { var n = Object.assign({}, p); n[vk] = n[vk] === "down" ? null : "down"; return n; }); }} style={{ background: my === "down" ? AC2 + "20" : "transparent", border: "1px solid " + (my === "down" ? AC2 : INA), borderRadius: 3, padding: "3px 10px", cursor: "pointer" }}>
-                        👎 <span style={{ fontSize: 10, color: AC2, fontWeight: 700 }}>{dn}</span>
+                        👎 <span style={{ fontSize: 10, color: theme.ac2, fontWeight: 700 }}>{dn}</span>
                       </button>
-                      <span style={{ fontSize: 9, color: MUT, marginLeft: "auto" }}>NET: <span style={{ color: net > 0 ? OK : net < 0 ? AC2 : MUT, fontWeight: 700 }}>{net > 0 ? "+" : ""}{net}</span></span>
+                      <span style={{ fontSize: 9, color: theme.mut, marginLeft: "auto" }}>NET: <span style={{ color: net > 0 ? theme.ok : net < 0 ? theme.ac2 : theme.mut, fontWeight: 700 }}>{net > 0 ? "+" : ""}{net}</span></span>
                     </div>
                   </div>
                 </div>
@@ -457,25 +621,25 @@ export default function App() {
       {/* ===== BUSINESS DASHBOARD ===== */}
       {pg === "biz" && user && user.type === "business" && (
         <div style={{ maxWidth: 700, margin: "0 auto", padding: 16 }}>
-          <div style={{ fontSize: 12, color: HI, fontWeight: 700, letterSpacing: 4, marginBottom: 16 }}>📊 {user.name.toUpperCase()} DASHBOARD</div>
+          <div style={{ fontSize: 12, color: theme.hi, fontWeight: 700, letterSpacing: 4, marginBottom: 16 }}>📊 {user.name.toUpperCase()} DASHBOARD</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
             {[["PROPOSED", "847", FG], ["CHECK-INS", "312", OK], ["CONVERSION", "36.8%", ACC]].map(function (m) {
               return (
                 <div key={m[0]} style={{ ...card, textAlign: "center" }}>
                   <div style={{ fontSize: 24, color: m[2], fontWeight: 900 }}>{m[1]}</div>
-                  <div style={{ fontSize: 8, color: MUT, letterSpacing: 3, marginTop: 4 }}>{m[0]}</div>
+                  <div style={{ fontSize: 8, color: theme.mut, letterSpacing: 3, marginTop: 4 }}>{m[0]}</div>
                 </div>
               );
             })}
           </div>
           <div style={card}>
-            <div style={{ fontSize: 11, color: HI, fontWeight: 700, letterSpacing: 3, marginBottom: 12 }}>🎁 INCENTIVE MANAGER</div>
+            <div style={{ fontSize: 11, color: theme.hi, fontWeight: 700, letterSpacing: 3, marginBottom: 12 }}>🎁 INCENTIVE MANAGER</div>
             {deals.map(function (d) {
               return (
                 <div key={d.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid " + INA }}>
                   <div>
-                    <div style={{ fontSize: 11, color: HI }}>{d.text}</div>
-                    <div style={{ fontSize: 9, color: MUT }}>{d.ct} redemptions</div>
+                    <div style={{ fontSize: 11, color: theme.hi }}>{d.text}</div>
+                    <div style={{ fontSize: 9, color: theme.mut }}>{d.ct} redemptions</div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span style={{ fontSize: 9, color: d.on ? OK : AC2 }}>{d.on ? "ON" : "OFF"}</span>
@@ -495,14 +659,14 @@ export default function App() {
       {/* ===== ADMIN ===== */}
       {pg === "admin" && user && user.type === "admin" && (
         <div style={{ maxWidth: 700, margin: "0 auto", padding: 16 }}>
-          <div style={{ fontSize: 12, color: HI, fontWeight: 700, letterSpacing: 4, marginBottom: 16 }}>⚡ ADMIN — ALGORITHM CONTROL</div>
+          <div style={{ fontSize: 12, color: theme.hi, fontWeight: 700, letterSpacing: 4, marginBottom: 16 }}>⚡ ADMIN — ALGORITHM CONTROL</div>
           <div style={{...card, marginBottom: 12, padding: 12, background: ABD + "15", border: "1px solid " + ABD}}>
-            <div style={{ fontSize: 10, color: DIM, lineHeight: 1.6 }}>Highlight or lowlight specific businesses in trail recommendations. Active controls are included in each itinerary request.</div>
+            <div style={{ fontSize: 10, color: theme.dim, lineHeight: 1.6 }}>Highlight or lowlight specific businesses in trail recommendations. Active controls are included in each itinerary request.</div>
           </div>
           <div style={card}>
-            <div style={{ fontSize: 11, color: HI, fontWeight: 700, letterSpacing: 2, marginBottom: 10 }}>ACTIVE CONTROLS</div>
+            <div style={{ fontSize: 11, color: theme.hi, fontWeight: 700, letterSpacing: 2, marginBottom: 10 }}>ACTIVE CONTROLS</div>
             {boosts.length === 0 ? (
-              <p style={{ color: MUT, fontSize: 10, textAlign: "center", margin: 0 }}>No controls yet. Add one below.</p>
+              <p style={{ color: theme.mut, fontSize: 10, textAlign: "center", margin: 0 }}>No controls yet. Add one below.</p>
             ) : (
               boosts.map(function (b) {
                 var isHighlight = b.type === "highlight";
@@ -511,14 +675,14 @@ export default function App() {
                     <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1 }}>
                       <span style={{ fontSize: 16, color: isHighlight ? OK : AC2 }}>{isHighlight ? "↗" : "↙"}</span>
                       <div>
-                        <div style={{ color: HI, fontWeight: 700, fontSize: 12 }}>{b.name}</div>
-                        <div style={{ color: MUT, fontSize: 9, letterSpacing: 1 }}>{isHighlight ? "HIGHLIGHT" : "LOWLIGHT"} · {b.pct}%</div>
+                        <div style={{ color: theme.hi, fontWeight: 700, fontSize: 12 }}>{b.name}</div>
+                        <div style={{ color: theme.mut, fontSize: 9, letterSpacing: 1 }}>{isHighlight ? "HIGHLIGHT" : "LOWLIGHT"} · {b.pct}%</div>
                       </div>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ fontSize: 9, color: b.on ? (isHighlight ? OK : AC2) : MUT, fontWeight: 700 }}>{b.on ? "ACTIVE" : "OFF"}</span>
                       <button onClick={function () { setBoosts(function (p) { return p.map(function (x) { return x.id === b.id ? Object.assign({}, x, { on: !x.on }) : x; }); }); }} style={btn(false, { padding: "3px 8px", fontSize: 8 })}>{b.on ? "OFF" : "ON"}</button>
-                      <button onClick={function () { setBoosts(function (p) { return p.filter(function (x) { return x.id !== b.id; }); }); }} style={btn(false, { padding: "3px 8px", fontSize: 8, color: AC2 })}>DEL</button>
+                      <button onClick={function () { setBoosts(function (p) { return p.filter(function (x) { return x.id !== b.id; }); }); }} style={btn(false, { padding: "3px 8px", fontSize: 8, color: theme.ac2 })}>DEL</button>
                     </div>
                   </div>
                 );
@@ -526,7 +690,7 @@ export default function App() {
             )}
           </div>
           <div style={{ ...card, marginTop: 12 }}>
-            <div style={{ fontSize: 11, color: HI, fontWeight: 700, letterSpacing: 3, marginBottom: 12 }}>+ ADD CONTROL</div>
+            <div style={{ fontSize: 11, color: theme.hi, fontWeight: 700, letterSpacing: 3, marginBottom: 12 }}>+ ADD CONTROL</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 12 }}>
               <div><label style={lbl}>BUSINESS NAME</label><input value={bName} onChange={function (e) { setBName(e.target.value); }} placeholder="e.g., Coffee Haus" style={inp} /></div>
               <div><label style={lbl}>TYPE</label><div style={{ display: "flex", gap: 4 }}>{["highlight", "lowlight"].map(function (t) { return <button key={t} onClick={function () { setBType(t); }} style={{ ...sel(bType === t), flex: 1, textAlign: "center", fontSize: 9, textTransform: "capitalize" }}>{t}</button>; })}</div></div>
@@ -536,7 +700,7 @@ export default function App() {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 16 }}>
             {[["TRAILS", "1,247"], ["USERS", "823"], ["PARTNERS", "34"]].map(function (m) {
-              return <div key={m[0]} style={{ ...card, textAlign: "center" }}><div style={{ fontSize: 20, color: ACC, fontWeight: 900 }}>{m[1]}</div><div style={{ fontSize: 8, color: MUT, letterSpacing: 3, marginTop: 3 }}>{m[0]}</div></div>;
+              return <div key={m[0]} style={{ ...card, textAlign: "center" }}><div style={{ fontSize: 20, color: theme.acc, fontWeight: 900 }}>{m[1]}</div><div style={{ fontSize: 8, color: theme.mut, letterSpacing: 3, marginTop: 3 }}>{m[0]}</div></div>;
             })}
           </div>
         </div>
@@ -545,7 +709,7 @@ export default function App() {
       {/* FOOTER */}
       <div style={{ textAlign: "center", padding: "40px 0 20px", marginTop: 40, borderTop: "1px solid " + INA }}>
         <div style={{ fontSize: 16, marginBottom: 4 }}>↗</div>
-        <div style={{ fontSize: 9, color: MUT, letterSpacing: 5 }}>OFFTRAILED v3</div>
+        <div style={{ fontSize: 9, color: theme.mut, letterSpacing: 5 }}>OFFTRAILED v3</div>
       </div>
 
       <style>{`
