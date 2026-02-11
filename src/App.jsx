@@ -50,7 +50,7 @@ const THEMES = {
   },
   "bachelorette": {
     name: "Wildflower",
-    bg: "#faf6f0",
+    bg: "#ede4d3",
     fg: "#d63384",
     hi: "#ff1493",
     dim: "rgba(214,51,132,0.6)",
@@ -66,8 +66,8 @@ const THEMES = {
     ina: "rgba(214,51,132,0.08)",
     ibg: "rgba(214,51,132,0.02)",
     ibd: "rgba(214,51,132,0.15)",
-    srf: "rgba(250,246,240,0.95)",
-    bgGradient: "linear-gradient(135deg, #f5ede3 0%, #faf6f0 50%, #f0e8dc 100%)",
+    srf: "rgba(237,228,211,0.95)",
+    bgGradient: "linear-gradient(135deg, #e0d5c1 0%, #ede4d3 50%, #d9cebb 100%)",
     mountainColor: "#d63384",
     cloudColor: "rgba(255,105,180,0.2)",
   }
