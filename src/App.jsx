@@ -63,6 +63,11 @@ function extractJSON(raw) {
   return null;
 }
 
+function stripTags(s) {
+  if (!s || typeof s !== 'string') return s;
+  return s.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 export default function App() {
   var [pg, setPg] = useState("home");
   var [user, setUser] = useState(null);
@@ -154,11 +159,11 @@ export default function App() {
       var answer = data.answer || data.response || "";
       var parsed = extractJSON(answer);
       if (parsed && parsed.stops) {
-        setStops(parsed.stops.map(function (s) { return Object.assign({}, s, { checkedIn: false }); }));
-        setNote(parsed.trail_note || "");
+        setStops(parsed.stops.map(function (s) { return Object.assign({}, s, { checkedIn: false, name: stripTags(s.name), description: stripTags(s.description), insider_tip: stripTags(s.insider_tip), est_cost: stripTags(s.est_cost), incentive: stripTags(s.incentive) }); }));
+        setNote(stripTags(parsed.trail_note || ""));
         setActive(0);
       } else {
-        setNote(answer || JSON.stringify(data));
+        setNote(stripTags(answer || JSON.stringify(data)));
       }
     } catch (e) {
       setNote("Error: " + e.message);
