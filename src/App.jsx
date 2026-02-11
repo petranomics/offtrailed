@@ -78,7 +78,7 @@ function getTheme(themeName) {
 }
 
 // SVG Background Components
-function MountainBackground({ theme, opacity = 0.3 }) {
+function MountainBackground({ theme, themeName = "forest", opacity = 0.3 }) {
   return (
     <svg
       viewBox="0 0 1000 300"
@@ -169,18 +169,6 @@ const DEMO_COLLAB = {
   ]
 };
 
-  // Styles (uses active theme)
-  var inp = { width: "100%", background: theme.ibg, border: "1px solid " + theme.ibd, color: theme.fg, fontFamily: "monospace", fontSize: 13, padding: "10px 12px", outline: "none", borderRadius: 3, boxSizing: "border-box" };
-  var lbl = { fontSize: 9, letterSpacing: 3, color: theme.dim, fontFamily: "monospace", display: "block", marginBottom: 6 };
-  var card = { background: theme.cbg, border: "1px solid " + theme.cbd, borderRadius: 4, padding: 16 };
-
-  function btn(pri, extra) {
-    return { background: pri ? theme.fg : "transparent", color: pri ? theme.bg : theme.fg, border: pri ? "none" : "1px solid " + theme.ina, fontFamily: "monospace", fontSize: 11, padding: "10px 20px", cursor: "pointer", borderRadius: 3, letterSpacing: 2, fontWeight: pri ? 700 : 400, ...(extra || {}) };
-  }
-  function sel(active) {
-    return { background: active ? theme.ab : theme.cbg, border: "1px solid " + (active ? theme.abd : theme.ina), color: active ? theme.fg : theme.mut, fontFamily: "monospace", cursor: "pointer", borderRadius: 3, padding: "6px 8px", fontSize: 10 };
-  }
-
 function extractJSON(raw) {
   var t = raw.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
   try { return JSON.parse(t); } catch (e) { /* continue */ }
@@ -199,7 +187,18 @@ function stripTags(s) {
 export default function App() {
   var [themeName, setThemeName] = useState("forest");
   var theme = getTheme(themeName);
-  
+
+  // Styles (uses active theme)
+  var inp = { width: "100%", background: theme.ibg, border: "1px solid " + theme.ibd, color: theme.fg, fontFamily: "monospace", fontSize: 13, padding: "10px 12px", outline: "none", borderRadius: 3, boxSizing: "border-box" };
+  var lbl = { fontSize: 9, letterSpacing: 3, color: theme.dim, fontFamily: "monospace", display: "block", marginBottom: 6 };
+  var card = { background: theme.cbg, border: "1px solid " + theme.cbd, borderRadius: 4, padding: 16 };
+  function btn(pri, extra) {
+    return { background: pri ? theme.fg : "transparent", color: pri ? theme.bg : theme.fg, border: pri ? "none" : "1px solid " + theme.ina, fontFamily: "monospace", fontSize: 11, padding: "10px 20px", cursor: "pointer", borderRadius: 3, letterSpacing: 2, fontWeight: pri ? 700 : 400, ...(extra || {}) };
+  }
+  function sel(active) {
+    return { background: active ? theme.ab : theme.cbg, border: "1px solid " + (active ? theme.abd : theme.ina), color: active ? theme.fg : theme.mut, fontFamily: "monospace", cursor: "pointer", borderRadius: 3, padding: "6px 8px", fontSize: 10 };
+  }
+
   var [pg, setPg] = useState("home");
   var [user, setUser] = useState(null);
   var [email, setEmail] = useState("demo@offtrailed.com");
@@ -375,7 +374,7 @@ export default function App() {
           {/* Background design */}
           <div style={{ position: "fixed", top: 60, left: 0, right: 0, height: "400px", background: theme.bgGradient, zIndex: -1, pointerEvents: "none" }}>
             <CloudBackground theme={theme} opacity={0.25} />
-            <MountainBackground theme={theme} opacity={0.3} />
+            <MountainBackground theme={theme} themeName={themeName} opacity={0.3} />
           </div>
 
           {/* Theme Selector */}
