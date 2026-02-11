@@ -44,7 +44,8 @@ export default async function handler(req, res) {
     });
 
     const ajson = await ares.json();
-    const assistant = (ajson.content || []).filter(c => c.type === 'text').map(c => c.text || '').join('\n') || JSON.stringify(ajson);
+const raw = (ajson.content || []).filter(c => c.type === 'text').map(c => c.text || '').join('\n') || JSON.stringify(ajson);
+        const assistant = raw.replace(/<cite[^>]*>/g, '').replace(/<\/cite>/g, '');
 
     const sources = top.map(t => t.link).filter(Boolean);
     return res.status(200).json({ query, answer: assistant, sources });
