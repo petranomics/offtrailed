@@ -227,27 +227,44 @@ export default function App() {
       {/* ===== HOME / TRAIL BUILDER ===== */}
       {pg === "home" && (
         <div style={{ maxWidth: 600, margin: "0 auto", padding: 16 }}>
-          {/* Hero */}
+          {/* Restored Landing / Intro */}
           <div style={{ textAlign: "center", padding: "30px 0 10px" }}>
             <div style={{ fontSize: 48, marginBottom: 8 }}>↗</div>
             <h1 style={{ fontSize: 32, fontWeight: 900, color: HI, letterSpacing: 8, margin: "0 0 4px" }}>OFFTRAILED</h1>
             <p style={{ color: FG, letterSpacing: 3, fontSize: 13, margin: 0 }}>Break the loop. Find what's new.</p>
+            <p style={{ color: DIM, fontSize: 12, marginTop: 8, maxWidth: 560, marginLeft: "auto", marginRight: "auto" }}>AI-powered discovery trails that help you find novel, underrated local experiences. No tourist traps.</p>
             {user && <p style={{ fontSize: 10, color: ACC, marginTop: 6 }}>Welcome back, {user.name}</p>}
           </div>
 
-          {/* How it works */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, margin: "20px 0" }}>
-            {[["01", "Set Trailhead", "City, date, vibe, budget — plus any mission."], ["02", "AI Scouts", "Live feeds, local blogs, events. No tourist traps."], ["03", "Get Offtrailed", "6-8 stops, insider tips, check-ins, biz perks."]].map(function (f) {
-              return (
-                <div key={f[0]} style={card}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                    <span style={{ fontSize: 16, color: ACC, fontWeight: 900 }}>{f[0]}</span>
-                    <span style={{ fontSize: 10, color: HI, fontWeight: 700, letterSpacing: 1 }}>{f[1]}</span>
-                  </div>
-                  <p style={{ fontSize: 10, color: DIM, lineHeight: 1.7, margin: 0 }}>{f[2]}</p>
+          <div style={{ maxWidth: 700, margin: "12px auto", padding: 8 }}>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center", marginBottom: 12 }}>
+              <div style={{ ...card, flex: "1 1 220px" }}>
+                <div style={{ fontSize: 12, color: HI, fontWeight: 700, marginBottom: 8 }}>Quick Start</div>
+                <pre style={{ background: SRF, padding: 10, color: MUT, fontSize: 12, borderRadius: 4, overflowX: "auto" }}>
+{`npm install
+cp .env.example .env
+# Edit .env and add your Anthropic key
+npm run dev`}
+                </pre>
+              </div>
+              <div style={{ ...card, flex: "1 1 220px" }}>
+                <div style={{ fontSize: 12, color: HI, fontWeight: 700, marginBottom: 8 }}>Features</div>
+                <ul style={{ color: DIM, fontSize: 12, lineHeight: 1.6, margin: 0, paddingLeft: 16 }}>
+                  <li>Trail Builder — location, date, duration, vibe, budget</li>
+                  <li>AI-Powered — Claude + web search for live, local results</li>
+                  <li>Check-ins & incentives — redeem deals at stops</li>
+                  <li>Collaboration — vote and reorder shared trails</li>
+                </ul>
+              </div>
+              <div style={{ ...card, flex: "1 1 220px" }}>
+                <div style={{ fontSize: 12, color: HI, fontWeight: 700, marginBottom: 8 }}>Demo Accounts</div>
+                <div style={{ color: DIM, fontSize: 12 }}>
+                  <div>demo@offtrailed.com / trail123</div>
+                  <div>biz@coffeehaus.com / biz123</div>
+                  <div>admin@offtrailed.com / admin123</div>
                 </div>
-              );
-            })}
+              </div>
+            </div>
           </div>
 
           {/* Builder */}
