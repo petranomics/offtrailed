@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 // THEMES - customize the entire look and feel
 const THEMES = {
   "forest": {
-    name: "Dark Forest",
+    name: "Timber Line",
     bg: "#0e1a12",
     fg: "#8fbc6a",
     hi: "#d4f0c0",
@@ -26,31 +26,31 @@ const THEMES = {
     cloudColor: "rgba(143,188,106,0.15)",
   },
   "vaporwave": {
-    name: "Vaporwave",
+    name: "Neon Summit",
     bg: "#1a1a2e",
-    fg: "#ff006e",
-    hi: "#ffbe0b",
-    dim: "rgba(255,0,110,0.6)",
-    mut: "rgba(255,0,110,0.4)",
+    fg: "#e8e0f0",
+    hi: "#ff006e",
+    dim: "rgba(232,224,240,0.6)",
+    mut: "rgba(232,224,240,0.4)",
     acc: "#00f5ff",
     ac2: "#ff6b9d",
     ac3: "#c239b3",
-    ok: "#ff006e",
-    cbg: "rgba(255,0,110,0.05)",
-    cbd: "rgba(255,0,110,0.15)",
-    ab: "rgba(255,0,110,0.1)",
-    abd: "rgba(255,0,110,0.3)",
-    ina: "rgba(255,0,110,0.08)",
-    ibg: "rgba(255,0,110,0.03)",
-    ibd: "rgba(255,0,110,0.15)",
+    ok: "#00f5ff",
+    cbg: "rgba(232,224,240,0.05)",
+    cbd: "rgba(232,224,240,0.15)",
+    ab: "rgba(232,224,240,0.1)",
+    abd: "rgba(232,224,240,0.3)",
+    ina: "rgba(232,224,240,0.08)",
+    ibg: "rgba(232,224,240,0.03)",
+    ibd: "rgba(232,224,240,0.15)",
     srf: "rgba(26,26,46,0.96)",
     bgGradient: "linear-gradient(135deg, #0f0419 0%, #1a1a2e 50%, #16213e 100%)",
     mountainColor: "#c239b3",
-    cloudColor: "rgba(255,0,110,0.2)",
+    cloudColor: "rgba(232,224,240,0.2)",
   },
   "bachelorette": {
-    name: "Bachelorette",
-    bg: "#fff5f8",
+    name: "Wildflower",
+    bg: "#faf6f0",
     fg: "#d63384",
     hi: "#ff1493",
     dim: "rgba(214,51,132,0.6)",
@@ -66,8 +66,8 @@ const THEMES = {
     ina: "rgba(214,51,132,0.08)",
     ibg: "rgba(214,51,132,0.02)",
     ibd: "rgba(214,51,132,0.15)",
-    srf: "rgba(255,245,248,0.95)",
-    bgGradient: "linear-gradient(135deg, #ffe4f0 0%, #fff5f8 50%, #ffd9e8 100%)",
+    srf: "rgba(250,246,240,0.95)",
+    bgGradient: "linear-gradient(135deg, #f5ede3 0%, #faf6f0 50%, #f0e8dc 100%)",
     mountainColor: "#d63384",
     cloudColor: "rgba(255,105,180,0.2)",
   }
@@ -77,52 +77,155 @@ function getTheme(themeName) {
   return THEMES[themeName] || THEMES.forest;
 }
 
-// SVG Background Components
-function MountainBackground({ theme, themeName = "forest", opacity = 0.3 }) {
+// SVG Background Components — one per theme
+function ForestBackground({ theme, opacity = 0.3 }) {
   return (
-    <svg
-      viewBox="0 0 1000 300"
-      style={{
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        width: "100%",
-        height: "200px",
-        opacity: opacity,
-      }}
-    >
+    <svg viewBox="0 0 1000 400" style={{
+      position: "absolute", bottom: 0, left: 0,
+      width: "100%", height: "100%", opacity: opacity
+    }}>
       <defs>
-        <linearGradient id={`mtGrad${themeName}`} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor={theme.mountainColor} stopOpacity={0.5} />
+        <linearGradient id="forestMtGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor={theme.mountainColor} stopOpacity={0.6} />
           <stop offset="100%" stopColor={theme.mountainColor} stopOpacity={0.1} />
         </linearGradient>
+        <linearGradient id="forestTreeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#2d5a1e" stopOpacity={0.5} />
+          <stop offset="100%" stopColor="#1a3a1f" stopOpacity={0.2} />
+        </linearGradient>
       </defs>
-      <polygon points="0,200 200,80 400,200" fill={`url(#mtGrad${themeName})`} />
-      <polygon points="300,200 550,40 800,200" fill={`url(#mtGrad${themeName})`} style={{opacity: 0.7}} />
-      <polygon points="700,200 900,100 1000,200" fill={`url(#mtGrad${themeName})`} style={{opacity: 0.6}} />
+      {/* Topographic contour lines */}
+      <path d="M0,80 Q250,60 500,85 T1000,75" fill="none" stroke={theme.cloudColor} strokeWidth="0.5" />
+      <path d="M0,110 Q300,90 600,115 T1000,105" fill="none" stroke={theme.cloudColor} strokeWidth="0.5" />
+      <path d="M0,140 Q200,125 500,145 T1000,135" fill="none" stroke={theme.cloudColor} strokeWidth="0.5" />
+      <path d="M0,170 Q350,155 700,175 T1000,165" fill="none" stroke={theme.cloudColor} strokeWidth="0.5" />
+      {/* Far mountain ridge */}
+      <polygon points="0,300 150,120 300,200 500,80 700,180 850,100 1000,250 1000,400 0,400"
+               fill="url(#forestMtGrad)" style={{opacity: 0.4}} />
+      {/* Mid mountain ridge */}
+      <polygon points="0,350 100,200 250,260 400,160 600,240 750,180 900,230 1000,300 1000,400 0,400"
+               fill="url(#forestMtGrad)" style={{opacity: 0.6}} />
+      {/* Near mountain ridge */}
+      <polygon points="0,380 200,280 400,320 550,260 700,310 850,270 1000,350 1000,400 0,400"
+               fill="url(#forestMtGrad)" style={{opacity: 0.8}} />
+      {/* Trees along the bottom */}
+      {[50, 120, 180, 280, 350, 420, 530, 600, 680, 760, 840, 920].map(function(x, i) {
+        var h = 30 + (i % 3) * 12;
+        var baseY = 380 - (i % 2) * 10;
+        return (
+          <polygon key={i}
+            points={x + "," + baseY + " " + (x - 10) + "," + (baseY + h) + " " + (x + 10) + "," + (baseY + h)}
+            fill="url(#forestTreeGrad)"
+            style={{opacity: 0.5 + (i % 3) * 0.1}}
+          />
+        );
+      })}
     </svg>
   );
 }
 
-function CloudBackground({ theme, opacity = 0.2 }) {
+function VaporwaveBackground({ theme, opacity = 0.25 }) {
   return (
-    <svg
-      viewBox="0 0 1000 200"
-      style={{
-        position: "absolute",
-        top: "20%",
-        left: 0,
-        width: "100%",
-        height: "150px",
-        opacity: opacity,
-      }}
-    >
-      <ellipse cx="150" cy="80" rx="80" ry="40" fill={theme.cloudColor} />
-      <ellipse cx="200" cy="100" rx="70" ry="35" fill={theme.cloudColor} />
-      <ellipse cx="100" cy="95" rx="60" ry="35" fill={theme.cloudColor} />
-      <ellipse cx="700" cy="60" rx="100" ry="45" fill={theme.cloudColor} />
-      <ellipse cx="800" cy="85" rx="85" ry="40" fill={theme.cloudColor} />
-      <ellipse cx="600" cy="75" rx="75" ry="38" fill={theme.cloudColor} />
+    <svg viewBox="0 0 1000 400" style={{
+      position: "absolute", bottom: 0, left: 0,
+      width: "100%", height: "100%", opacity: opacity
+    }}>
+      <defs>
+        <linearGradient id="vwSunGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#ff006e" stopOpacity={0.6} />
+          <stop offset="50%" stopColor="#ff006e" stopOpacity={0.3} />
+          <stop offset="100%" stopColor="#c239b3" stopOpacity={0.1} />
+        </linearGradient>
+      </defs>
+      {/* Retro sun with horizontal stripe cutouts */}
+      <circle cx="500" cy="200" r="80" fill="url(#vwSunGrad)" />
+      {[170, 180, 190, 200, 210, 220, 230].map(function(y, i) {
+        return (
+          <rect key={i} x="420" y={y} width="160"
+                height={2 + i * 0.5}
+                fill={theme.bg} style={{opacity: 0.7}} />
+        );
+      })}
+      {/* Perspective grid — horizontal lines */}
+      {[240, 260, 285, 315, 350, 400].map(function(y, i) {
+        return (
+          <line key={"h" + i} x1="0" y1={y} x2="1000" y2={y}
+                stroke={theme.mountainColor} strokeWidth="0.8"
+                style={{opacity: 0.3 - i * 0.03}} />
+        );
+      })}
+      {/* Perspective grid — converging vertical lines */}
+      {[-200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200].map(function(x, i) {
+        return (
+          <line key={"v" + i} x1="500" y1="240" x2={x} y2="400"
+                stroke={theme.mountainColor} strokeWidth="0.6"
+                style={{opacity: 0.25}} />
+        );
+      })}
+      {/* Floating diamond shapes */}
+      {[{x: 150, y: 100, s: 8}, {x: 800, y: 80, s: 6}, {x: 350, y: 60, s: 5}, {x: 680, y: 130, s: 7}].map(function(d, i) {
+        return (
+          <polygon key={"d" + i}
+            points={d.x + "," + (d.y - d.s) + " " + (d.x + d.s) + "," + d.y + " " + d.x + "," + (d.y + d.s) + " " + (d.x - d.s) + "," + d.y}
+            fill="none" stroke="#00f5ff" strokeWidth="0.5"
+            style={{opacity: 0.4}}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+function WildflowerBackground({ theme, opacity = 0.2 }) {
+  function flower(cx, cy, petalR, color, op) {
+    var petals = [];
+    for (var i = 0; i < 5; i++) {
+      var angle = (i * 72 - 90) * Math.PI / 180;
+      var px = cx + Math.cos(angle) * petalR * 0.8;
+      var py = cy + Math.sin(angle) * petalR * 0.8;
+      petals.push(
+        <circle key={i} cx={px} cy={py} r={petalR} fill={color} opacity={op} />
+      );
+    }
+    petals.push(
+      <circle key="center" cx={cx} cy={cy} r={petalR * 0.5}
+              fill={theme.acc} opacity={op * 0.6} />
+    );
+    return petals;
+  }
+
+  return (
+    <svg viewBox="0 0 1000 400" style={{
+      position: "absolute", bottom: 0, left: 0,
+      width: "100%", height: "100%", opacity: opacity
+    }}>
+      {/* Soft rolling hills */}
+      <path d="M0,350 Q150,300 300,330 Q450,360 600,320 Q750,280 900,310 Q950,320 1000,340 L1000,400 L0,400 Z"
+            fill={theme.mountainColor} opacity={0.15} />
+      <path d="M0,370 Q200,340 400,360 Q600,380 800,350 Q900,340 1000,360 L1000,400 L0,400 Z"
+            fill={theme.mountainColor} opacity={0.1} />
+      {/* Curving vine stems */}
+      <path d="M100,400 Q120,300 160,250 Q200,200 180,150"
+            fill="none" stroke={theme.mountainColor} strokeWidth="1" opacity={0.2} />
+      <path d="M800,400 Q780,320 820,260 Q860,200 840,160"
+            fill="none" stroke={theme.mountainColor} strokeWidth="1" opacity={0.2} />
+      <path d="M450,400 Q430,330 470,280 Q510,230 490,180"
+            fill="none" stroke={theme.mountainColor} strokeWidth="1" opacity={0.15} />
+      {/* Flowers at stem tips and scattered */}
+      <g>{flower(180, 150, 10, theme.cloudColor, 0.5)}</g>
+      <g>{flower(840, 160, 8, theme.cloudColor, 0.4)}</g>
+      <g>{flower(490, 180, 9, theme.cloudColor, 0.35)}</g>
+      <g>{flower(650, 80, 7, theme.cloudColor, 0.3)}</g>
+      <g>{flower(300, 120, 6, theme.cloudColor, 0.25)}</g>
+      {/* Small pollen dots */}
+      {[{x:200, y:180}, {x:820, y:190}, {x:470, y:210}, {x:620, y:110},
+        {x:350, y:150}, {x:550, y:170}, {x:150, y:250}, {x:750, y:220},
+        {x:280, y:200}, {x:700, y:150}].map(function(p, i) {
+        return (
+          <circle key={i} cx={p.x} cy={p.y} r={1.5}
+                  fill={theme.acc} opacity={0.3} />
+        );
+      })}
     </svg>
   );
 }
@@ -373,8 +476,9 @@ export default function App() {
         <div style={{ maxWidth: 600, margin: "0 auto", padding: 16, position: "relative" }}>
           {/* Background design */}
           <div style={{ position: "fixed", top: 60, left: 0, right: 0, height: "400px", background: theme.bgGradient, zIndex: -1, pointerEvents: "none" }}>
-            <CloudBackground theme={theme} opacity={0.25} />
-            <MountainBackground theme={theme} themeName={themeName} opacity={0.3} />
+            {themeName === "forest" && <ForestBackground theme={theme} opacity={0.3} />}
+            {themeName === "vaporwave" && <VaporwaveBackground theme={theme} opacity={0.25} />}
+            {themeName === "bachelorette" && <WildflowerBackground theme={theme} opacity={0.2} />}
           </div>
 
           {/* Theme Selector */}
