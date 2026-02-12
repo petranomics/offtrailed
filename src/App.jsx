@@ -338,6 +338,8 @@ export default function App() {
   var [endTime, setEndTime] = useState("15:00");
   var [vibe, setVibe] = useState("hidden-gems");
   var [budget, setBudget] = useState("$$");
+  var [radius, setRadius] = useState("1mi");
+  var [transport, setTransport] = useState("walking");
   var [mission, setMission] = useState("");
   var [loading, setLoading] = useState(false);
   var [ldMsg, setLdMsg] = useState("");
@@ -347,6 +349,28 @@ export default function App() {
   var [active, setActive] = useState(null);
   var [note, setNote] = useState("");
   var [tweak, setTweak] = useState("");
+  var [removedNames, setRemovedNames] = useState([]);
+  var [showReplace, setShowReplace] = useState(null); // index where a stop was removed
+
+  function removeStop(idx) {
+    var removed = stops[idx];
+    setRemovedNames(function (p) { return p.concat([removed.name]); });
+    setStops(function (p) { return p.filter(function (_, j) { return j !== idx; }); });
+    setShowReplace(idx);
+    setActive(null);
+  }
+  function moveStop(idx, dir) {
+    var newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= stops.length) return;
+    setStops(function (p) {
+      var arr = p.slice();
+      var tmp = arr[idx];
+      arr[idx] = arr[newIdx];
+      arr[newIdx] = tmp;
+      return arr;
+    });
+    setActive(null);
+  }
 
   // Saved
   var [saved, setSaved] = useState([{ id: "t1", title: "Austin Hidden Gems", date: "2026-02-01", stops: DEMO_TRAIL }]);
@@ -400,7 +424,7 @@ export default function App() {
       var boostHints = activeBoosts.length > 0 ? "\n\nAlgorithm Control (apply these biases):\n" + activeBoosts.map(function (b) { return (b.type === "highlight" ? "[+" + b.pct + "%] HIGHLIGHT" : "[-" + b.pct + "%] LOWLIGHT") + ": " + b.name; }).join("\n") : "";
       var durationHours = Math.abs((endTime.split(":")[0] - startTime.split(":")[0]) + (endTime.split(":")[1] - startTime.split(":")[1]) / 60);
       var durationLabel = durationHours <= 3 ? "2-3 hours" : durationHours <= 6 ? "half day" : durationHours <= 10 ? "full day" : "overnight";
-      var query = (mission ? "Focus on: " + mission + "\n" : "") + "Trail for " + loc + " on " + date + " from " + startTime + " to " + endTime + " (" + durationLabel + "), vibe: " + vibe + ", budget: " + budget + ". Generate 6-10 real, verified stops.\nJSON: {\"stops\":[{\"time\":\"10:00 AM\",\"name\":\"N\",\"category\":\"food\",\"description\":\"Desc\",\"insider_tip\":\"Tip\",\"est_cost\":\"$10\"}],\"trail_note\":\"Note\",\"total_est_cost\":\"$X\"}" + boostHints;
+      var query = (mission ? "Focus on: " + mission + "\n" : "") + "Trail for " + loc + " on " + date + " from " + startTime + " to " + endTime + " (" + durationLabel + "), vibe: " + vibe + ", budget: " + budget + ", transport: " + transport + ", radius: " + radius + ".\n\nCRITICAL CONSTRAINTS:\n- ALL stops MUST be within " + radius + " of each other. This is a hard limit, not a suggestion.\n- Transport mode is " + transport + ". Order stops as a logical route so the user never backtracks." + (transport === "walking" ? " Every stop must be walkable from the previous one — under " + radius + " between consecutive stops." : "") + (transport === "transit" ? " Factor in subway/bus routes. Order stops along transit lines so transfers are minimal." : "") + "\n- Do NOT recommend the same popular tourist attractions that appear on every top-10 list. Find places with genuine local reputation but that aren't over-recommended.\n\nGenerate 6-10 real, verified stops.\nJSON: {\"stops\":[{\"time\":\"10:00 AM\",\"name\":\"N\",\"category\":\"food\",\"description\":\"Desc\",\"insider_tip\":\"Tip\",\"est_cost\":\"$10\",\"address\":\"123 Main St\",\"phone\":\"(512) 555-1234\",\"website\":\"https://example.com\"}],\"trail_note\":\"Note\",\"total_est_cost\":\"$X\"}" + boostHints;
       var res = await fetch("/api/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -576,10 +600,24 @@ export default function App() {
                 })}
               </div>
             </div>
-            <div style={{ marginBottom: 16 }}><label style={lbl}>BUDGET</label>
+            <div style={{ marginBottom: 12 }}><label style={lbl}>BUDGET</label>
               <div style={{ display: "flex", gap: 4 }}>
                 {["Free", "$", "$$", "$$$"].map(function (b) {
                   return <button key={b} onClick={function () { setBudget(b); }} style={{ ...sel(budget === b), flex: 1, textAlign: "center", fontWeight: 700 }}>{b}</button>;
+                })}
+              </div>
+            </div>
+            <div style={{ marginBottom: 12 }}><label style={lbl}>GETTING AROUND</label>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 4 }}>
+                {[["walking", "🚶 Walk"], ["transit", "🚇 Transit"], ["biking", "🚲 Bike"], ["driving", "🚗 Drive"]].map(function (t) {
+                  return <button key={t[0]} onClick={function () { setTransport(t[0]); }} style={{ ...sel(transport === t[0]), textAlign: "center", padding: "8px 4px", fontSize: 9 }}>{t[1]}</button>;
+                })}
+              </div>
+            </div>
+            <div style={{ marginBottom: 16 }}><label style={lbl}>RADIUS</label>
+              <div style={{ display: "flex", gap: 4 }}>
+                {[["0.5mi", "½ mi"], ["1mi", "1 mi"], ["3mi", "3 mi"], ["5mi", "5 mi"], ["10mi", "10 mi"]].map(function (r) {
+                  return <button key={r[0]} onClick={function () { setRadius(r[0]); }} style={{ ...sel(radius === r[0]), flex: 1, textAlign: "center", fontWeight: 700, fontSize: 9 }}>{r[1]}</button>;
                 })}
               </div>
             </div>
@@ -615,10 +653,16 @@ export default function App() {
 
               {stops.map(function (s, i) {
                 return (
-                  <div key={i} onClick={function () { setActive(active === i ? null : i); }} style={{ ...card, padding: "12px 12px 12px 40px", marginBottom: 4, position: "relative", cursor: "pointer", background: active === i ? theme.ab : theme.cbg, border: "1px solid " + (active === i ? theme.abd : theme.cbd) }}>
+                  <div key={i} onClick={function () { setActive(active === i ? null : i); }} style={{ ...card, padding: "12px 36px 12px 40px", marginBottom: 4, position: "relative", cursor: "pointer", background: active === i ? theme.ab : theme.cbg, border: "1px solid " + (active === i ? theme.abd : theme.cbd) }}>
                     {/* Number circle */}
                     <div style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)", width: 22, height: 22, borderRadius: "50%", background: s.checkedIn ? theme.ok : (active === i ? theme.fg : theme.cbg), border: "2px solid " + (s.checkedIn ? theme.ok : (active === i ? theme.fg : theme.mut)), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 700, color: (s.checkedIn || active === i) ? theme.bg : theme.mut }}>
                       {s.checkedIn ? "✓" : i + 1}
+                    </div>
+                    {/* Reorder + remove controls (right side) */}
+                    <div style={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", display: "flex", flexDirection: "column", gap: 2 }} onClick={function (e) { e.stopPropagation(); }}>
+                      {i > 0 && <button onClick={function () { moveStop(i, -1); }} style={{ background: "none", border: "none", color: theme.mut, cursor: "pointer", fontSize: 10, padding: "1px 4px", fontFamily: "monospace" }}>▲</button>}
+                      {i < stops.length - 1 && <button onClick={function () { moveStop(i, 1); }} style={{ background: "none", border: "none", color: theme.mut, cursor: "pointer", fontSize: 10, padding: "1px 4px", fontFamily: "monospace" }}>▼</button>}
+                      <button onClick={function () { removeStop(i); }} style={{ background: "none", border: "none", color: theme.ac2, cursor: "pointer", fontSize: 10, padding: "1px 4px", fontFamily: "monospace" }}>✕</button>
                     </div>
                     {/* Meta */}
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
@@ -650,6 +694,16 @@ export default function App() {
                   </div>
                 );
               })}
+
+              {showReplace !== null && (
+                <div style={{ ...card, marginTop: 8, padding: 12, borderLeft: "3px solid " + theme.acc, background: theme.acc + "08" }}>
+                  <p style={{ fontSize: 10, color: theme.acc, margin: "0 0 8px" }}>Removed that waypoint. Want a replacement?</p>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button onClick={function () { setShowReplace(null); }} style={btn(false, { padding: "4px 12px", fontSize: 9 })}>No thanks</button>
+                    <button onClick={function () { setTweak("Replace removed stop with something new nearby"); setShowReplace(null); }} style={btn(true, { padding: "4px 12px", fontSize: 9, background: theme.acc })}>Scout a new one</button>
+                  </div>
+                </div>
+              )}
 
               {note && <div style={{ marginTop: 12, padding: 12, borderLeft: "3px solid " + theme.ac2, background: theme.ac2 + "08", borderRadius: 3 }}><p style={{ fontSize: 11, color: theme.ac2, lineHeight: 1.7, margin: 0 }}>{note}</p></div>}
 
