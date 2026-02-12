@@ -418,7 +418,7 @@ export default function App() {
       var answer = data.answer || data.response || "";
       var parsed = extractJSON(answer);
       if (parsed && parsed.stops) {
-        setStops(parsed.stops.map(function (s) { return Object.assign({}, s, { checkedIn: false, name: stripTags(s.name), description: stripTags(s.description), insider_tip: stripTags(s.insider_tip), est_cost: stripTags(s.est_cost), incentive: stripTags(s.incentive) }); }));
+        setStops(parsed.stops.map(function (s) { return Object.assign({}, s, { checkedIn: false, name: stripTags(s.name), description: stripTags(s.description), insider_tip: stripTags(s.insider_tip), est_cost: stripTags(s.est_cost), incentive: stripTags(s.incentive), address: stripTags(s.address), phone: stripTags(s.phone), website: s.website || "" }); }));
         setNote(stripTags(parsed.trail_note || ""));
         setActive(0);
       } else {
@@ -633,6 +633,13 @@ export default function App() {
                     {active === i && (
                       <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid " + theme.ina }}>
                         {s.insider_tip && <p style={{ fontSize: 10, color: theme.acc, marginBottom: 6, margin: "0 0 6px" }}>💡 {s.insider_tip}</p>}
+                        {(s.address || s.phone || s.website) && (
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8, fontSize: 9 }}>
+                            {s.address && <span style={{ color: theme.dim }}>📍 {s.address}</span>}
+                            {s.phone && <a href={"tel:" + s.phone} onClick={function (e) { e.stopPropagation(); }} style={{ color: theme.ac3, textDecoration: "none" }}>📞 {s.phone}</a>}
+                            {s.website && <a href={s.website} target="_blank" rel="noopener noreferrer" onClick={function (e) { e.stopPropagation(); }} style={{ color: theme.ac3, textDecoration: "none" }}>🔗 Website</a>}
+                          </div>
+                        )}
                         {!s.checkedIn ? (
                           <button onClick={function (e) { e.stopPropagation(); setStops(function (p) { return p.map(function (x, j) { return j === i ? Object.assign({}, x, { checkedIn: true }) : x; }); }); }} style={btn(true, { padding: "8px 16px", fontSize: 10, background: theme.ok, letterSpacing: 3 })}>📍 CHECK IN</button>
                         ) : (

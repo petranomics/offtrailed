@@ -83,7 +83,7 @@ export default async function handler(req, res) {
     }
 
     // Build a prompt for Claude using search results
-    const prompt = `You are OFFTRAILED. Use the search results below when composing a JSON itinerary.\n\nSearch results:\n${top.map(t=>`- ${t.title}: ${t.snippet} (${t.link})`).join('\n')}\n\nUser query: ${query}\n\nRespond ONLY with valid JSON matching: {"stops":[{"time":"10 AM","name":"N","category":"food","description":"Desc","insider_tip":"Tip","est_cost":"$10"}],"trail_note":"Note","total_est_cost":"$X"}`;
+    const prompt = `You are OFFTRAILED. Use the search results below and your web search tool when composing a JSON trail.\n\nSearch results:\n${top.map(t=>`- ${t.title}: ${t.snippet} (${t.link})`).join('\n')}\n\nUser query: ${query}\n\nFor each stop, search for its website, phone number, and address. Include the most relevant link for the user — the business website, OpenTable page for restaurants, or Google Maps link. If you can't find a field, omit it.\n\nRespond ONLY with valid JSON matching: {"stops":[{"time":"10 AM","name":"N","category":"food","description":"Desc","insider_tip":"Tip","est_cost":"$10","address":"123 Main St","phone":"(512) 555-1234","website":"https://example.com"}],"trail_note":"Note","total_est_cost":"$X"}`;
 
     if (!process.env.ANTHROPIC_API_KEY) {
       return res.status(500).json({ error: 'Missing ANTHROPIC_API_KEY in environment' });
@@ -99,7 +99,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
-        system: 'You are OFFTRAILED. Find novel, underrated experiences. If user mentions events, prioritize those. Use web search. Respond ONLY valid JSON.',
+        system: 'You are OFFTRAILED, an AI discovery agent. Find novel, underrated experiences — not tourist traps or top-10 list staples. If user mentions events, prioritize those. Use web search to verify each stop is real and currently open, and to find its website, phone, and address. For restaurants, prefer linking to their OpenTable or Resy page if available, otherwise their own website. Respond ONLY with valid JSON.',
         tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         messages: [{ role: 'user', content: prompt }]
       })
