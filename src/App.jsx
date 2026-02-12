@@ -658,11 +658,11 @@ export default function App() {
                     <div style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)", width: 22, height: 22, borderRadius: "50%", background: s.checkedIn ? theme.ok : (active === i ? theme.fg : theme.cbg), border: "2px solid " + (s.checkedIn ? theme.ok : (active === i ? theme.fg : theme.mut)), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 700, color: (s.checkedIn || active === i) ? theme.bg : theme.mut }}>
                       {s.checkedIn ? "✓" : i + 1}
                     </div>
-                    {/* Reorder + remove controls (right side) */}
-                    <div style={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", display: "flex", flexDirection: "column", gap: 2 }} onClick={function (e) { e.stopPropagation(); }}>
-                      {i > 0 && <button onClick={function () { moveStop(i, -1); }} style={{ background: "none", border: "none", color: theme.mut, cursor: "pointer", fontSize: 10, padding: "1px 4px", fontFamily: "monospace" }}>▲</button>}
-                      {i < stops.length - 1 && <button onClick={function () { moveStop(i, 1); }} style={{ background: "none", border: "none", color: theme.mut, cursor: "pointer", fontSize: 10, padding: "1px 4px", fontFamily: "monospace" }}>▼</button>}
-                      <button onClick={function () { removeStop(i); }} style={{ background: "none", border: "none", color: theme.ac2, cursor: "pointer", fontSize: 10, padding: "1px 4px", fontFamily: "monospace" }}>✕</button>
+                    {/* Controls (right side): reorder + thumbs */}
+                    <div style={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }} onClick={function (e) { e.stopPropagation(); }}>
+                      {i > 0 && <button onClick={function () { moveStop(i, -1); }} style={{ background: "none", border: "none", color: theme.mut, cursor: "pointer", fontSize: 9, padding: "0 4px", fontFamily: "monospace", lineHeight: 1 }}>▲</button>}
+                      <button onClick={function () { removeStop(i); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, padding: "2px 4px", lineHeight: 1, opacity: 0.7 }} title="Remove this stop">👎</button>
+                      {i < stops.length - 1 && <button onClick={function () { moveStop(i, 1); }} style={{ background: "none", border: "none", color: theme.mut, cursor: "pointer", fontSize: 9, padding: "0 4px", fontFamily: "monospace", lineHeight: 1 }}>▼</button>}
                     </div>
                     {/* Meta */}
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
