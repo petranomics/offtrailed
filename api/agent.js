@@ -69,21 +69,32 @@ export default async function handler(req, res) {
     // Basic search (SerpAPI) - requires SEARCH_API_KEY in Vercel env
     const provider = process.env.SEARCH_PROVIDER || 'serpapi';
     let top = [];
+    let atlasResults = [];
     try {
       if (provider === 'serpapi' && process.env.SEARCH_API_KEY) {
         const q = encodeURIComponent(query);
-        const sres = await fetch(`https://serpapi.com/search.json?q=${q}&api_key=${process.env.SEARCH_API_KEY}`);
+        // General search + Atlas Obscura site-specific search in parallel
+        const [sres, ares] = await Promise.all([
+          fetch(`https://serpapi.com/search.json?q=${q}&api_key=${process.env.SEARCH_API_KEY}`),
+          fetch(`https://serpapi.com/search.json?q=${encodeURIComponent('site:atlasobscura.com ' + query)}&api_key=${process.env.SEARCH_API_KEY}`)
+        ]);
         const sjson = await sres.json();
         const organic = sjson.organic_results || sjson.organic || [];
-        top = organic.slice(0, 5).map(r => ({ title: r.title || r.position || '', snippet: r.snippet || r.snippet || r.description || '', link: r.link || r.url || '' }));
+        top = organic.slice(0, 5).map(r => ({ title: r.title || r.position || '', snippet: r.snippet || r.description || '', link: r.link || r.url || '' }));
+
+        const ajson = await ares.json();
+        const atlasOrganic = ajson.organic_results || ajson.organic || [];
+        atlasResults = atlasOrganic.slice(0, 5).map(r => ({ title: r.title || '', snippet: r.snippet || r.description || '', link: r.link || r.url || '' }));
       }
     } catch (e) {
       // ignore search errors but continue
       top = [];
+      atlasResults = [];
     }
 
     // Build a prompt for Claude using search results
-    const prompt = `You are OFFTRAILED. Use the search results below and your web search tool when composing a JSON trail.\n\nSearch results:\n${top.map(t=>`- ${t.title}: ${t.snippet} (${t.link})`).join('\n')}\n\nUser query: ${query}\n\nFor each stop, search for its website, phone number, and address. Include the most relevant link for the user — the business website, OpenTable page for restaurants, or Google Maps link. If you can't find a field, omit it.\n\nRespond ONLY with valid JSON matching: {"stops":[{"time":"10 AM","name":"N","category":"food","description":"Desc","insider_tip":"Tip","est_cost":"$10","address":"123 Main St","phone":"(512) 555-1234","website":"https://example.com"}],"trail_note":"Note","total_est_cost":"$X"}`;
+    const atlasSection = atlasResults.length > 0 ? `\n\nAtlas Obscura results (prioritize these for hidden/unusual stops):\n${atlasResults.map(t=>`- ${t.title}: ${t.snippet} (${t.link})`).join('\n')}` : '';
+    const prompt = `You are OFFTRAILED. Use the search results below and your web search tool when composing a JSON trail.\n\nSearch results:\n${top.map(t=>`- ${t.title}: ${t.snippet} (${t.link})`).join('\n')}${atlasSection}\n\nUser query: ${query}\n\nFor each stop, search for its website, phone number, and address. Include the most relevant link for the user — the business website, OpenTable page for restaurants, or Google Maps link. If you can't find a field, omit it.\n\nRespond ONLY with valid JSON matching: {"stops":[{"time":"10 AM","name":"N","category":"food","description":"Desc","insider_tip":"Tip","est_cost":"$10","address":"123 Main St","phone":"(512) 555-1234","website":"https://example.com"}],"trail_note":"Note","total_est_cost":"$X"}`;
 
     if (!process.env.ANTHROPIC_API_KEY) {
       return res.status(500).json({ error: 'Missing ANTHROPIC_API_KEY in environment' });
@@ -106,6 +117,9 @@ NOVELTY RULES:
 - Favor places with strong local reputation but low tourist visibility — the kind of spot a well-connected local would recommend.
 - Each trail should feel like a curated discovery, not a guidebook itinerary.
 - Balance novelty with quality — don't recommend obscure places just because they're obscure. They should be genuinely good.
+- Use Atlas Obscura as a primary inspiration source. Search atlasobscura.com for the user's city to find unusual, hidden, and remarkable places. Atlas Obscura entries are exactly the type of discovery Offtrailed is built for — weird museums, secret gardens, underground tunnels, oddball public art, quirky local institutions.
+- Mix Atlas Obscura-style hidden gems with local-favorite food spots, independent shops, and neighborhood institutions that don't appear on tourist lists.
+- NEVER repeat the same set of popular recommendations. If a place shows up on every "things to do in [city]" article, skip it.
 
 PROXIMITY RULES:
 - The user specifies a radius and transport mode. This is a HARD constraint — every stop must be within the specified radius of the others.
@@ -116,6 +130,7 @@ PROXIMITY RULES:
 CONTACT INFO:
 - Use web search to find each stop's website, phone, and address.
 - For restaurants, prefer OpenTable or Resy links if available.
+- For Atlas Obscura places, include the atlasobscura.com link as the website.
 - If you can't verify a field, omit it rather than guessing.
 
 Respond ONLY with valid JSON.`,
