@@ -35,7 +35,6 @@ function checkRateLimit(ip) {
     rateLimits.set(ip, entry);
   }
   entry.count++;
-  // Clean up old entries periodically
   if (rateLimits.size > 500) {
     for (const [k, v] of rateLimits) {
       if (now - v.windowStart > RATE_WINDOW) rateLimits.delete(k);
@@ -44,10 +43,15 @@ function checkRateLimit(ip) {
   return entry.count <= RATE_MAX;
 }
 
+import { logUsage } from './_lib/usage-logger.mjs';
+
+// --- VPS agent config ---
+const VPS_URL = process.env.VPS_API_URL || 'http://72.60.120.245:3000';
+const VPS_KEY = process.env.VPS_API_SECRET || '';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  // Rate limit by IP
   const ip = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown').split(',')[0].trim();
   if (!checkRateLimit(ip)) {
     return res.status(429).json({ error: 'Too many requests. Please wait a few minutes.' });
@@ -57,23 +61,70 @@ export default async function handler(req, res) {
     const { query } = req.body || {};
     if (!query) return res.status(400).json({ error: 'Missing query' });
 
-    // Check cache
+    // Check local cache
     const key = cacheKey(query);
     const cached = getCached(key);
     if (cached) {
-      res.setHeader('Cache-Control', 'private, max-age=1800');
       res.setHeader('X-Cache', 'HIT');
       return res.status(200).json(cached);
     }
 
-    // Basic search (SerpAPI) - requires SEARCH_API_KEY in Vercel env
+    // --- Try VPS agent first (free, cached city data + Mistral) ---
+    if (VPS_KEY) {
+      const vpsStartedAt = Date.now();
+      try {
+        const vpsRes = await fetch(`${VPS_URL}/agent/offtrailed`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': VPS_KEY
+          },
+          body: JSON.stringify({ query }),
+          signal: AbortSignal.timeout(120000)
+        });
+
+        if (vpsRes.ok) {
+          const vpsData = await vpsRes.json();
+          if (vpsData.trail && vpsData.trail.stops && vpsData.trail.stops.length >= 2) {
+            // Format response to match what the frontend expects:
+            // { answer: "JSON string", sources: [] }
+            const answer = JSON.stringify(vpsData.trail);
+            const responseData = {
+              query,
+              answer,
+              sources: [],
+              trail_id: vpsData.trail_id,
+              source: 'vps-agent',
+              cache_status: vpsData.cache_status
+            };
+            setCache(key, responseData);
+            await logUsage({
+              app: 'offtrailed',
+              endpoint: '/api/agent',
+              model: 'mistral',
+              provider: 'mistral',
+              response: null,
+              latencyMs: Date.now() - vpsStartedAt,
+              metadata: { source: 'vps-agent', cache_status: vpsData.cache_status, query_len: query.length },
+            });
+            res.setHeader('X-Cache', 'MISS');
+            res.setHeader('X-Source', 'vps-agent');
+            return res.status(200).json(responseData);
+          }
+        }
+      } catch (vpsErr) {
+        // VPS failed — fall through to Claude
+        console.log(`[agent] VPS fallback: ${vpsErr.message}`);
+      }
+    }
+
+    // --- Fallback: Claude API with web search ---
     const provider = process.env.SEARCH_PROVIDER || 'serpapi';
     let top = [];
     let atlasResults = [];
     try {
       if (provider === 'serpapi' && process.env.SEARCH_API_KEY) {
         const q = encodeURIComponent(query);
-        // General search + Atlas Obscura site-specific search in parallel
         const [sres, ares] = await Promise.all([
           fetch(`https://serpapi.com/search.json?q=${q}&api_key=${process.env.SEARCH_API_KEY}`),
           fetch(`https://serpapi.com/search.json?q=${encodeURIComponent('site:atlasobscura.com ' + query)}&api_key=${process.env.SEARCH_API_KEY}`)
@@ -87,12 +138,10 @@ export default async function handler(req, res) {
         atlasResults = atlasOrganic.slice(0, 5).map(r => ({ title: r.title || '', snippet: r.snippet || r.description || '', link: r.link || r.url || '' }));
       }
     } catch (e) {
-      // ignore search errors but continue
       top = [];
       atlasResults = [];
     }
 
-    // Build a prompt for Claude using search results
     const atlasSection = atlasResults.length > 0 ? `\n\nAtlas Obscura results (prioritize these for hidden/unusual stops):\n${atlasResults.map(t=>`- ${t.title}: ${t.snippet} (${t.link})`).join('\n')}` : '';
     const prompt = `You are OFFTRAILED. Use the search results below and your web search tool when composing a JSON trail.\n\nSearch results:\n${top.map(t=>`- ${t.title}: ${t.snippet} (${t.link})`).join('\n')}${atlasSection}\n\nUser query: ${query}\n\nFor each stop, search for its website, phone number, and address. Include the most relevant link for the user — the business website, OpenTable page for restaurants, or Google Maps link. If you can't find a field, omit it.\n\nRespond ONLY with valid JSON matching: {"stops":[{"time":"10 AM","name":"N","category":"food","description":"Desc","insider_tip":"Tip","est_cost":"$10","address":"123 Main St","phone":"(512) 555-1234","website":"https://example.com"}],"trail_note":"Note","total_est_cost":"$X"}`;
 
@@ -100,6 +149,8 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Missing ANTHROPIC_API_KEY in environment' });
     }
 
+    const claudeModel = 'claude-sonnet-4-20250514';
+    const claudeStartedAt = Date.now();
     const ares = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -108,7 +159,7 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: claudeModel,
         max_tokens: 4000,
         system: `You are OFFTRAILED, an AI discovery agent that finds genuinely novel local experiences.
 
@@ -144,13 +195,23 @@ Respond ONLY with valid JSON.`,
     const assistant = raw.replace(/<cite[^>]*>/g, '').replace(/<\/cite>/g, '');
 
     const sources = top.map(t => t.link).filter(Boolean);
-    const responseData = { query, answer: assistant, sources };
+    const responseData = { query, answer: assistant, sources, source: 'claude-api' };
 
-    // Cache the response
     setCache(key, responseData);
-
-    res.setHeader('Cache-Control', 'private, max-age=1800');
+    // Web-search tool calls aren't counted in usage.web_searches; infer from server_tool_use blocks.
+    const webSearchUses = (ajson.content || []).filter(c => c.type === 'server_tool_use' && c.name === 'web_search').length;
+    await logUsage({
+      app: 'offtrailed',
+      endpoint: '/api/agent',
+      model: claudeModel,
+      provider: 'anthropic',
+      response: ajson,
+      webSearches: webSearchUses,
+      latencyMs: Date.now() - claudeStartedAt,
+      metadata: { source: 'claude-api', query_len: query.length, serp_results: top.length },
+    });
     res.setHeader('X-Cache', 'MISS');
+    res.setHeader('X-Source', 'claude-api');
     return res.status(200).json(responseData);
   } catch (err) {
     return res.status(500).json({ error: err.message || String(err) });
