@@ -149,7 +149,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Missing ANTHROPIC_API_KEY in environment' });
     }
 
-    const claudeModel = 'claude-sonnet-4-20250514';
+    const claudeModel = process.env.OFFTRAILED_FALLBACK_MODEL || 'claude-haiku-4-5-20251001';
     const claudeStartedAt = Date.now();
     const ares = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
